@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests for command-line backend process interruption."""
+
+import os
+import shlex
+import sys
+import threading
+import time
+from types import SimpleNamespace
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..")))
+
+from veriagent.abackend.cmdline import VeriAgentCmdLineBackend
+
+
+class _FakeAgent:
+    def __init__(self, workspace=None) -> None:
+        self._break = False
+        self.messages = []
+        self.workspace = workspace or current_dir
+        self.pdb = SimpleNamespace(_mcp_server=None)
+
+    def message_echo(self, txt: str) -> None:
+        self.messages.append(txt)
+
+    def is_break(self) -> bool:
+        return self._break
+
+    def set_break(self, value=True) -> None:
+        self._break = value
+
+
+def test_process_bash_cmd_interrupts_silent_process():
+    agent = _FakeAgent()
+    backend = VeriAgentCmdLineBackend(agent, config=object(), cli_cmd_ctx="")
+    backend.CWD = current_dir
+
+    cmd = f"{shlex.quote(sys.executable)} -c 'import time; time.sleep(30)'"
+
+    def trigger_break() -> None:
+        time.sleep(0.2)
+        agent.set_break(True)
+
+    breaker = threading.Thread(target=trigger_break)
+    breaker.start()
+
+    start = time.time()
+    return_code, output_lines = backend.process_bash_cmd(cmd)
+    elapsed = time.time() - start
+
+    breaker.join(timeout=1)
+
+    assert elapsed < 5
+    assert return_code is not None
+    assert return_code != 0
+    assert output_lines == []
+    assert backend._fail_count == 0
+
+
+def test_render_config_files_uses_context_and_creates_parent_dir(tmp_path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    template_dir = tmp_path / "templates"
+    template_dir.mkdir()
+    template_file = template_dir / "mcp.json"
+    template_file.write_text(
+        '{"url": "http://127.0.0.1:{{PORT}}/mcp", "model": "{{OPENAI_MODEL}}"}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("OPENAI_MODEL", "test-model")
+
+    agent = _FakeAgent(workspace=str(workspace))
+    config = SimpleNamespace(mcp_server=SimpleNamespace(port=5678))
+    backend = VeriAgentCmdLineBackend(
+        agent,
+        config=config,
+        cli_cmd_ctx="",
+        render_files={str(template_file): "{CWD}/nested/config.json"},
+    )
+
+    backend.init()
+
+    rendered_file = workspace / "nested" / "config.json"
+    assert rendered_file.read_text(encoding="utf-8") == (
+        '{"url": "http://127.0.0.1:5678/mcp", "model": "test-model"}'
+    )
