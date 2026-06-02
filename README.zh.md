@@ -8,7 +8,11 @@
 
 ## 项目是什么
 
-**Runtime（VeriAgent）** 负责阶段机、Checker、MCP 验证工具与监督循环；**Codex** 负责每轮读 RTL、写测试与复杂代码修改。全仓库统一为 **监督式 Codex**（MCP + loop + `--backend=codex`），见 [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md)。
+**Runtime（VeriAgent）** 负责阶段机、Checker、MCP 验证工具与监督循环；**Codex** 负责每轮读 RTL、写测试与复杂代码修改。
+
+**官方验证路径 = 监督式 Codex**（`--backend=codex` + MCP + `--loop`）。其它 backend（`langchain`、纯 MCP 无 loop 等）为 **legacy / 未在本仓库测试**。
+
+Workflow **外置**于 `examples/*/workflow/`，必须通过 **`--config`** 显式传入。见 [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md)。
 
 ---
 
@@ -49,7 +53,29 @@ veriagent output/workspace_Adder/ Adder \
   --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
 ```
 
-无需另开终端手动启动 Qwen/Claude；**不要**使用纯 langchain API 或「仅 MCP、无 loop」模式。
+无需另开终端手动启动 Qwen/Claude。**不要**使用 langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
+
+---
+
+## 可度量产出（Benchmark）
+
+每次运行在 workspace 下写入 `.veriagent/run_manifest.json`（DUT、workflow、阶段进度、耗时）。汇总：
+
+```bash
+make benchmark   # → benchmark/summary.csv、benchmark/runs.json
+```
+
+详见 [benchmark/README.md](/benchmark/README.md)。
+
+---
+
+## Backend 状态
+
+| 路径 | 状态 |
+|------|------|
+| 监督式 Codex（`--backend=codex` + MCP + `--loop`） | **官方 / 已测试** |
+| `langchain` / 纯 API | Legacy，本仓库未持续维护 |
+| 被动 MCP（无 `--loop`） | Legacy |
 
 ---
 
@@ -86,6 +112,7 @@ veriagent output/workspace_Adder/ Adder \
 | `make example-formal` | Formal arbiter |
 | `make mcp_<DUT>` | 任意 UT DUT（自动 workflow） |
 | `make formal_mcp_<DUT>` | Formal（含 `--use-skill`） |
+| `make benchmark` | 汇总 run_manifest.json |
 
 ---
 

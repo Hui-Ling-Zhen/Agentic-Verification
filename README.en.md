@@ -8,7 +8,11 @@ LLM-powered **Agentic Verification** for hardware — CLI **`veriagent`**
 
 ## What this repo is
 
-**VeriAgent runtime** owns the stage machine, Checkers, MCP verification tools, and the supervised loop. **Codex** handles each round of RTL reading, test writing, and complex edits. The repo standardizes on **supervised Codex** only: MCP + `--loop` + `--backend=codex`. See [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md).
+**VeriAgent runtime** owns the stage machine, Checkers, MCP verification tools, and the supervised loop. **Codex** handles each round of RTL reading, test writing, and complex edits.
+
+**Official verification path = supervised Codex** (`--backend=codex` + MCP + `--loop`). Other backends (`langchain`, passive MCP-only, etc.) are **legacy / untested** in this repo.
+
+Workflow YAML is **externalized** under `examples/*/workflow/` — pass it with **`--config`** (required). See [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md).
 
 ---
 
@@ -44,7 +48,29 @@ veriagent output/workspace_Adder/ Adder \
   --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
 ```
 
-Do not use passive MCP (second terminal) or `--backend=langchain` as the primary path.
+Do not use passive MCP (second terminal) or `--backend=langchain` as the primary path. **`--config` is required** — the runtime does not ship a built-in UT/Formal workflow.
+
+---
+
+## Benchmark
+
+Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration). Aggregate with:
+
+```bash
+make benchmark   # → benchmark/summary.csv, benchmark/runs.json
+```
+
+See [benchmark/README.md](/benchmark/README.md).
+
+---
+
+## Backend status
+
+| Path | Status |
+|------|--------|
+| Supervised Codex (`--backend=codex`, MCP, `--loop`) | **Official / tested** |
+| `langchain` / API-only | Legacy, not maintained here |
+| Passive MCP (no `--loop`) | Legacy |
 
 ---
 
@@ -69,6 +95,7 @@ Case index: same table as [README.zh.md](/README.zh.md#case-readme-索引).
 | `make example-formal` | Formal arbiter |
 | `make mcp_<DUT>` | UT with auto workflow |
 | `make formal_mcp_<DUT>` | Formal + `--use-skill` |
+| `make benchmark` | Aggregate run manifests |
 
 ---
 

@@ -272,6 +272,36 @@ def _prepare_workspace_archive_source(workspace: str, dut_name: str, workspace_b
     return effective_workspace
 
 
+def _workflow_config_examples() -> str:
+    return (
+        "Example workflow configs (required via --config):\n"
+        "  examples/01-baseline/workflow/default.yaml   # UT baseline (Adder/Mux)\n"
+        "  examples/01-baseline/workflow/inc.yaml       # incremental verification\n"
+        "  examples/02-peripheral-ip/workflow/default.yaml\n"
+        "  examples/03-microarch/workflow/default.yaml  # Sbuffer / Mock\n"
+        "  examples/04-algorithm/workflow/default.yaml\n"
+        "  examples/05-formal/workflow/formal.yaml      # Formal cases\n"
+        "  examples/06-planning/genspec/genspec.yaml    # GenSpec\n"
+        "\n"
+        "Or use Makefile (auto-selects workflow):\n"
+        "  make example-baseline\n"
+        "  make mcp_<DUT>\n"
+        "  make formal_mcp_<DUT>"
+    )
+
+
+def _require_workflow_config(args) -> None:
+    """Agentic-Verification: workflow YAML must be passed explicitly via --config."""
+    if args.config is not None:
+        return
+    info(
+        "Error: --config is required. VeriAgent runtime does not ship a built-in UT/Formal workflow.\n"
+        "Load a case workflow from examples/*/workflow/*.yaml.\n"
+    )
+    info(_workflow_config_examples())
+    sys.exit(1)
+
+
 class CheckAction(argparse.Action):
     """Custom action for --check flag that exits after checking."""
     def __init__(self, option_strings, dest, **kwargs):
@@ -411,10 +441,13 @@ def get_args() -> argparse.Namespace:
     
     # Configuration arguments
     parser.add_argument(
-        "--config", 
-        type=str, 
-        default=None, 
-        help="Path to the configuration file"
+        "--config",
+        type=str,
+        default=None,
+        help=(
+            "Path to example workflow YAML (required). "
+            "e.g. examples/01-baseline/workflow/default.yaml"
+        ),
     )
     parser.add_argument(
         "--template-dir", 
@@ -984,6 +1017,8 @@ def run() -> None:
         _p.error("the following arguments are required: workspace, dut")
 
     args.workspace = _prepare_workspace_archive_source(args.workspace, args.dut, args.workspace_base)
+
+    _require_workflow_config(args)
 
     from veriagent.verify_agent import VerifyAgent
     from veriagent.util.log import init_log_logger, init_msg_logger

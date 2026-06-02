@@ -371,25 +371,33 @@ def get_config(config_file=None, cfg_override=None, workspace=None):
         else:
             info(f"Workspace config file '{cwd_setting_file}' not found, ignore.")
 
-    # 5. find user specified config file
-    target_file = config_file
-    if config_file is None:
-        target_file = 'config.yaml'  # Default configuration file
-    user_config_file_path = find_file_in_paths(target_file, [os.getcwd(),
-                                                             os.path.join(user_home, '.veriagent/'),
-                                                             os.path.join(os.path.dirname(__file__), f"../lang/{lang}/config/")
-                                                      ])
+    # 5. load explicit workflow config (--config); no silent fallback to config.yaml
     if config_file is not None:
-        assert user_config_file_path is not None, f"Config file '{config_file}' not found in current directory or default config path."
-    if user_config_file_path is None:
-        info(f"Default user config file '{config_file}' not found, ignore.")
-    else:
+        user_config_file_path = find_file_in_paths(
+            config_file,
+            [
+                os.getcwd(),
+                os.path.join(user_home, ".veriagent/"),
+                os.path.join(os.path.dirname(__file__), f"../lang/{lang}/config/"),
+            ],
+        )
+        assert user_config_file_path is not None, (
+            f"Workflow config '{config_file}' not found. "
+            "Use an example workflow, e.g. examples/01-baseline/workflow/default.yaml"
+        )
         user_config_file_path = os.path.abspath(user_config_file_path)
         if user_config_file_path not in loaded_configs:
             cfg.merge_from(Config(load_yaml_with_env_vars(user_config_file_path)))
             info(f"Load config from '{user_config_file_path}' completed.")
         else:
             info(f"Config file '{user_config_file_path}' already loaded, ignore.")
+        stages = getattr(cfg, "stage", None)
+        stage_count = len(stages) if isinstance(stages, list) else 0
+        if stage_count == 0 and os.path.basename(user_config_file_path) != "empty.yaml":
+            raise ValueError(
+                f"Workflow config '{user_config_file_path}' defines no stages. "
+                "Pick a case workflow under examples/*/workflow/, not veriagent/lang/zh/config/empty.yaml."
+            )
 
     # set override values
     return cfg.set_values(cfg_override).freeze()

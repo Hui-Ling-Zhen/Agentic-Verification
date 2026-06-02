@@ -45,8 +45,19 @@ Formal 另加：`--use-skill`、`--guid-doc-path ...`、`--output formal_test`�
 ## 仓库根目录 Make
 
 ```bash
-make mcp_<DUT>    # UT 类 DUT，自动选择 storyline workflow
+make mcp_<DUT>          # UT 类 DUT，自动选择 storyline workflow 与 --config
 make formal_mcp_<DUT>   # Formal，含 --use-skill
+make benchmark          # 汇总各 workspace 的 run_manifest.json
 ```
 
-无需再开第二个终端手动启动 Qwen/Codex；也**不要**使用纯 `--backend=langchain` 或「仅 MCP、无 loop」的被动模式。
+无需再开第二个终端手动启动 Qwen/Codex。
+
+## 官方路径 vs Legacy backend
+
+| 路径 | 状态 |
+|------|------|
+| **监督式 Codex**（`--backend=codex` + MCP + `--loop`） | **官方验证路径**，本仓库 Makefile 与示例均按此测试 |
+| `--backend=langchain` / 纯 API | **Legacy**，未在本仓库持续验证 |
+| 仅 MCP、无 `--loop` 的被动模式 | **Legacy**，非产品化路径 |
+
+也**不要**省略 `--config`：workflow 外置在 `examples/*/workflow/`，Runtime 不内置 UT/Formal 流程。

@@ -115,6 +115,7 @@ class VerifyAgent:
                 warning(f"Resuming from saved stage index: {force_stage_index}")
         self.workspace = os.path.abspath(workspace)
         self.__version__ = __version__
+        self.config_file = config_file
         self.cfg = get_config(config_file, cfg_override, self.workspace)
         temp_args = {
             "OUT": output,

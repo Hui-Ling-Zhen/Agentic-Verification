@@ -278,6 +278,15 @@ example-peripheral:
 example-algorithm:
 	$(MAKE) mcp_IntegerDivider $(ARGS)
 
+# ---------- Benchmark: aggregate .veriagent/run_manifest.json ----------
+.PHONY: benchmark benchmark-clean
+
+benchmark:
+	@python3 scripts/benchmark_collect.py --scan output examples
+
+benchmark-clean:
+	rm -rf benchmark/summary.csv benchmark/runs.json
+
 # ---------- Formal Verification ----------
 FORMAL_DIR   := examples/05-formal
 FORMAL_CWD   ?= $(FORMAL_DIR)/output/workspace_$*
