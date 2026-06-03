@@ -86,6 +86,18 @@ backend:
         - "cp {CWD}/.codex/config.toml ~/.codex/config.toml"
       cfg_bash_enable: false
 
+  codex_app_server:
+    clss: veriagent.abackend.codex_sdk.CodexAppServerBackend
+    args:
+      model: "{{OPENAI_MODEL|default(\"gpt-5.5\")}}"
+      model_provider: "veriagent"
+      approval_policy: "never"
+      personality: "pragmatic"
+      render_files:
+        "{ASSETS}/mcp_codex.toml": "{CWD}/.codex/config.toml"
+      config_overrides: []
+      compact_on_stage_complete: false
+
 mcp_server:
   host: 127.0.0.1
   port: 5000

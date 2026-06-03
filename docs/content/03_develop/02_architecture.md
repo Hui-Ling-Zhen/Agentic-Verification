@@ -45,6 +45,28 @@ VeriAgent 由三大核心组件构成，它们相互协作完成验证任务：
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Codex 绑定的双层 Runtime
+
+在 Codex 绑定模式下，VeriAgent 不再承担通用 Agent 内核职责，而是作为验证领域 supervisor：
+
+```mermaid
+flowchart TB
+    VerifyAgent["VeriAgent Supervisor"] --> StageManager["StageManager"]
+    StageManager --> Checkers["Checkers"]
+    VerifyAgent -->|"one_loop -> one turn"| CodexTurn["Codex Turn"]
+    CodexTurn -->|"MCP verification tools"| VeriMCP["VeriAgent MCP"]
+    VeriMCP --> StageManager
+    CodexTurn -->|"structured events"| EventSink["Codex Event Sink"]
+    EventSink --> StageManager
+```
+
+职责边界：
+
+- VeriAgent 保留 workflow YAML、StageManager、Checkers、Complete/Check/CurrentTips、stage journal、human stage approval、benchmark manifest 和验证领域 MCP 工具。
+- Codex 负责 LLM loop、上下文组装、通用文件读写搜索、shell 执行、patch apply、sandbox/approval、token usage、conversation compaction 和 Thread/Turn 持久化。
+- 一个 verification mission 对应一个 Codex Thread；一个 VeriAgent `one_loop()` 对应一个 Codex Turn。
+- Codex app-server 后端会把 thread/turn 状态保存到 `.veriagent/codex_thread.json`，并通过结构化事件回流文件观察、工具调用和 token usage。
+
 ### 1. Stage Manager（阶段管理器）
 
 **作用**：管理工作流的执行流程，负责阶段（Stage）的推进和状态追踪。

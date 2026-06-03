@@ -354,16 +354,21 @@ class VerifyStage(object):
         abs_file_path = os.path.abspath(self.workspace + os.path.sep + file_path)
         return abs_file_path.startswith(skill_root)
     
-    def on_file_read(self, success, file_path, content):
+    def on_file_observed(self, file_path, source="unknown", success=True):
         if not self.is_curent_active():
             return
         if self.force_unactive:
             return
         if not success:
             return
+        if os.path.isabs(file_path):
+            try:
+                file_path = os.path.relpath(file_path, self.workspace)
+            except ValueError:
+                pass
         if file_path in self.reference_files:
             self.reference_files[file_path] = True
-            info(f"[{self.__class__.__name__}.{self.name}] Reference file {file_path} has been read by the LLM.")
+            info(f"[{self.__class__.__name__}.{self.name}] Reference file {file_path} has been observed by the LLM via {source}.")
 
         if self.is_skill_path(file_path):
             abs_path = os.path.abspath(self.workspace + os.path.sep + file_path)
@@ -371,7 +376,10 @@ class VerifyStage(object):
                 skill_name = os.path.basename(os.path.dirname(abs_path))
                 if skill_name in self.skill_list:
                     self.set_usage_skill_list(skill_name, read=True)
-                    info(f"[{self.__class__.__name__}.{self.name}] Skill {skill_name} has been read by the LLM.")
+                    info(f"[{self.__class__.__name__}.{self.name}] Skill {skill_name} has been observed by the LLM via {source}.")
+
+    def on_file_read(self, success, file_path, content):
+        self.on_file_observed(file_path, source="ReadTextFile", success=success)
 
     def __repr__(self):
         return f"VerifyStage(name={self.name}, description={self.description()}, "+\

@@ -76,6 +76,65 @@ class AgentBackendBase(object):
         raise NotImplementedError("Subclasses must implement this method.")
 
     # Optional methods
+    def start_or_resume_thread(self):
+        """
+        Start or resume a structured backend conversation.
+
+        Backends that expose a persistent agent kernel (for example Codex
+        app-server) should override this method. Legacy command-line and
+        LangChain backends can keep the default no-op behavior.
+        """
+        return None
+
+    def run_turn(self, prompt, config=None):
+        """
+        Run one structured backend turn.
+
+        This is intentionally separate from do_work_values(): VeriAgent's
+        outer loop maps one supervised round to one backend turn, while legacy
+        backends may still only support opaque work execution.
+        """
+        return self.do_work_values({"messages": [prompt]}, config or {})
+
+    def stream_events(self, turn_handle=None):
+        """
+        Yield structured backend events for the active turn when supported.
+        """
+        return iter(())
+
+    def interrupt(self):
+        """
+        Interrupt the active backend turn when supported.
+        """
+        return False
+
+    def current_thread_id(self):
+        """
+        Return the current backend thread/session id when supported.
+        """
+        return None
+
+    def current_turn_id(self):
+        """
+        Return the current backend turn id when supported.
+        """
+        return None
+
+    def last_turn_summary(self):
+        """
+        Return structured metadata for the most recent backend turn.
+        """
+        return {}
+
+    def requires_verification_only_mcp(self) -> bool:
+        """
+        Whether the backend owns generic file/shell tools itself.
+
+        Codex-bound backends should return True so VeriAgent only exposes
+        verification-domain tools over MCP.
+        """
+        return False
+
     def get_message_manage_node(self):
         """
         Get the message management node.
@@ -96,6 +155,15 @@ class AgentBackendBase(object):
         Clean up resources before exiting the backend.
         """
         pass
+
+    def close(self):
+        """
+        Close backend resources.
+
+        This mirrors the Codex SDK naming while preserving the historical
+        VeriAgent exit() hook.
+        """
+        return self.exit()
 
     def set_debug(self, debug):
         """

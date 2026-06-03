@@ -549,6 +549,8 @@ class VerifyAgent:
 
     def set_break(self, value=True):
         self._need_break = value
+        if value and hasattr(self, "backend"):
+            self.backend.interrupt()
 
     def is_break(self):
         return (
@@ -557,6 +559,8 @@ class VerifyAgent:
 
     def set_break_thread(self, thread_id: int) -> None:
         self._break_threads.add(thread_id)
+        if hasattr(self, "backend"):
+            self.backend.interrupt()
 
     def clear_break_thread(self, thread_id: int) -> None:
         self._break_threads.discard(thread_id)
@@ -625,6 +629,8 @@ class VerifyAgent:
         if self.is_exit():
             return
         self._is_exit = True
+        if hasattr(self, "backend"):
+            self.backend.close()
         fc.chmode_rw(self.cwd_read_only_files)
 
     def protect_files_on(self, new_files: List[str]):

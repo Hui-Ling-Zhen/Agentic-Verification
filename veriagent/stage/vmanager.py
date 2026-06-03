@@ -681,6 +681,18 @@ class StageManager(object):
         tips = make_llm_tool_ret(tips)
         return self.attach_todo_summary(tips)
 
+    def on_file_observed(self, file_path: str, source: str = "unknown"):
+        """Record that the lower-level agent observed a workspace file."""
+        stage = self.get_current_stage()
+        if stage is None:
+            return
+        if os.path.isabs(file_path):
+            try:
+                file_path = os.path.relpath(file_path, self.workspace)
+            except ValueError:
+                pass
+        stage.on_file_observed(file_path, source=source, success=True)
+
     def detail(self):
         """
         Get the details of the current mission, including all stages and their details.

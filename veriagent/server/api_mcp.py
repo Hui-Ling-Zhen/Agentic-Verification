@@ -73,6 +73,26 @@ class PdbMcpServer:
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
+    _GENERIC_FILE_TOOL_NAMES = {
+        "PathList",
+        "GetFileInfo",
+        "ReadBinFile",
+        "ReadTextFile",
+        "SearchText",
+        "FindFiles",
+        "EditTextFile",
+        "ReplaceStringInFile",
+        "CopyFile",
+        "MoveFile",
+        "DeleteFile",
+        "CreateDirectory",
+    }
+
+    def _filter_generic_file_tools(self, tools):
+        return [
+            tool for tool in tools
+            if getattr(tool, "name", None) not in self._GENERIC_FILE_TOOL_NAMES
+        ]
 
     def start(self) -> Tuple[bool, str]:
         """Build the tool list and start the MCP server in a background thread.
@@ -88,8 +108,18 @@ class PdbMcpServer:
 
         # Collect tools from the agent
         tools = agent.tool_list_base + agent.tool_list_task + agent.tool_list_ext
+        backend_requires_domain_tools = False
+        try:
+            backend_requires_domain_tools = agent.backend.requires_verification_only_mcp()
+        except AttributeError:
+            backend_requires_domain_tools = False
+        if backend_requires_domain_tools:
+            self.no_file_ops = True
+
         if not self.no_file_ops:
             tools += agent.tool_list_file
+        elif backend_requires_domain_tools:
+            tools = self._filter_generic_file_tools(tools)
 
         agent.cfg.update_template(
             {"TOOLS": ", ".join([t.name for t in tools])}
