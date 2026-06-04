@@ -247,6 +247,18 @@ class VerifyAgent:
                 self.cfg.un_write_dirs.append(
                     rm_workspace_prefix(self.workspace, abs_f)
                 )
+        if self.cfg.backend.key_name == "codex_app_server":
+            # The inner Codex runtime owns file/shell actions; keep task inputs
+            # read-only at the OS layer while allowing generated tests/output.
+            for rel_path in [
+                self.dut_name,
+                f"{self.dut_name}_RTL",
+                "Guide_Doc",
+                "skills",
+            ]:
+                abs_path = os.path.join(self.workspace, rel_path)
+                if os.path.exists(abs_path) and rel_path not in self.cfg.un_write_dirs:
+                    self.cfg.un_write_dirs.append(rel_path)
         self.cwd_read_only_files = fc.chmode_ro_by_pattern(
             self.workspace, self.cfg.get_value("un_write_dirs", [])
         )

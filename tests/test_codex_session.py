@@ -21,6 +21,11 @@ def test_codex_session_store_round_trip(tmp_path):
         model="gpt-test",
         cwd=str(workspace),
         backend="codex_app_server",
+        dut_name="Demo",
+        workflow_config="/tmp/workflow.yaml",
+        workflow_hash="workflow-hash",
+        workspace_hash="workspace-hash",
+        backend_args_hash="backend-hash",
     )
 
     assert state.thread_id == "thread-1"
@@ -31,3 +36,8 @@ def test_codex_session_store_round_trip(tmp_path):
     assert loaded.last_turn_id == "turn-1"
     assert loaded.model == "gpt-test"
     assert loaded.cwd == str(workspace)
+    assert loaded.dut_name == "Demo"
+    assert loaded.workflow_config == "/tmp/workflow.yaml"
+    assert loaded.workflow_hash == "workflow-hash"
+    assert loaded.workspace_hash == "workspace-hash"
+    assert loaded.backend_args_hash == "backend-hash"

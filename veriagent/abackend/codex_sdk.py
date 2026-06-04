@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import json
+import hashlib
 import datetime as _dt
 from typing import Any
 
@@ -48,6 +49,10 @@ class CodexAppServerBackend(AgentBackendBase):
         config_overrides: list[str] | tuple[str, ...] | None = None,
         render_files: dict[str, str] | None = None,
         compact_on_stage_complete: bool = False,
+        resume_codex_thread: bool = False,
+        codex_network_access: str = "enabled",
+        codex_write_policy: str = "workspace_only",
+        codex_command_policy: str = "codex_sandbox",
         codex_factory=None,
         **kwargs,
     ):
@@ -65,6 +70,10 @@ class CodexAppServerBackend(AgentBackendBase):
         self.config_overrides = tuple(config_overrides or ())
         self.render_files = render_files or {}
         self.compact_on_stage_complete = compact_on_stage_complete
+        self.resume_codex_thread = resume_codex_thread
+        self.codex_network_access = codex_network_access
+        self.codex_write_policy = codex_write_policy
+        self.codex_command_policy = codex_command_policy
         self.codex_factory = codex_factory
 
         self.CWD = None
@@ -99,7 +108,12 @@ class CodexAppServerBackend(AgentBackendBase):
         ctx.update({
             "ASSETS": self._get_assets_path(),
             "CWD": self.CWD or self.vagent.workspace,
+            "DUT": getattr(self.vagent, "dut_name", ""),
             "PORT": self._get_mcp_port(),
+            "SANDBOX": self.sandbox or "workspace-write",
+            "CODEX_NETWORK_ACCESS": self.codex_network_access,
+            "CODEX_WRITE_POLICY": self.codex_write_policy,
+            "CODEX_COMMAND_POLICY": self.codex_command_policy,
         })
         return ctx
 
@@ -182,12 +196,118 @@ class CodexAppServerBackend(AgentBackendBase):
     def _clean_kwargs(self, kwargs):
         return {k: v for k, v in kwargs.items() if v is not None}
 
+    def _sha256_file(self, path):
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def _hash_jsonable(self, value):
+        payload = json.dumps(value, sort_keys=True, ensure_ascii=False, default=str)
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def _resolve_workflow_config_path(self):
+        config_file = getattr(self.vagent, "config_file", None)
+        if not config_file:
+            return None
+        if os.path.isabs(config_file) and os.path.isfile(config_file):
+            return os.path.abspath(config_file)
+        candidates = [
+            os.path.abspath(config_file),
+            os.path.abspath(os.path.join(self.CWD or self.vagent.workspace, config_file)),
+        ]
+        for candidate in candidates:
+            if os.path.isfile(candidate):
+                return candidate
+        return config_file
+
+    def _workflow_hash(self, workflow_config):
+        if workflow_config and os.path.isfile(workflow_config):
+            return self._sha256_file(workflow_config)
+        return self._hash_jsonable({"workflow_config": workflow_config})
+
+    def _workspace_hash(self):
+        """Hash stable task inputs rather than generated output files."""
+        roots = [
+            os.path.join(self.CWD, getattr(self.vagent, "dut_name", "")),
+            os.path.join(self.CWD, f"{getattr(self.vagent, 'dut_name', '')}_RTL"),
+            os.path.join(self.CWD, "Guide_Doc"),
+            os.path.join(self.CWD, "skills"),
+        ]
+        records = []
+        for root in roots:
+            if not root or not os.path.exists(root):
+                records.append({"path": os.path.relpath(root, self.CWD), "missing": True})
+                continue
+            for dirpath, dirnames, filenames in os.walk(root):
+                dirnames[:] = [d for d in sorted(dirnames) if d not in {"__pycache__", ".git"}]
+                for filename in sorted(filenames):
+                    if filename.endswith((".pyc", ".pyo")):
+                        continue
+                    path = os.path.join(dirpath, filename)
+                    rel = os.path.relpath(path, self.CWD)
+                    try:
+                        records.append({"path": rel, "sha256": self._sha256_file(path)})
+                    except OSError as exc:
+                        records.append({"path": rel, "error": str(exc)})
+        return self._hash_jsonable(records)
+
+    def _backend_args_hash(self):
+        return self._hash_jsonable({
+            "model": self.model,
+            "model_provider": self.model_provider,
+            "approval_policy": self.approval_policy,
+            "sandbox": self.sandbox,
+            "effort": self.effort,
+            "personality": self.personality,
+            "service_tier": self.service_tier,
+            "config_overrides": list(self.config_overrides),
+            "render_files": self.render_files,
+            "codex_network_access": self.codex_network_access,
+            "codex_write_policy": self.codex_write_policy,
+            "codex_command_policy": self.codex_command_policy,
+        })
+
+    def _current_session_fingerprint(self):
+        workflow_config = self._resolve_workflow_config_path()
+        return {
+            "dut_name": getattr(self.vagent, "dut_name", None),
+            "workflow_config": workflow_config,
+            "workflow_hash": self._workflow_hash(workflow_config),
+            "workspace_hash": self._workspace_hash(),
+            "backend_args_hash": self._backend_args_hash(),
+        }
+
+    def _session_mismatches(self, state, current):
+        mismatches = {}
+        for key, expected in current.items():
+            observed = getattr(state, key, None)
+            if observed != expected:
+                mismatches[key] = {"saved": observed, "current": expected}
+        return mismatches
+
     def start_or_resume_thread(self):
         if self._codex is None:
             raise RuntimeError("Codex backend is not initialized")
         state = self._session_store.load()
+        fingerprint = self._current_session_fingerprint()
         kwargs = self._clean_kwargs(self._thread_kwargs())
-        if state.thread_id:
+        mismatches = self._session_mismatches(state, fingerprint) if state.thread_id else {}
+        should_resume = bool(state.thread_id) and (not mismatches or self.resume_codex_thread)
+        if mismatches and state.thread_id:
+            mismatch_keys = ", ".join(sorted(mismatches.keys()))
+            if self.resume_codex_thread:
+                warning(
+                    f"Codex session fingerprint mismatch ({mismatch_keys}); "
+                    "--resume-codex-thread was set, resuming anyway."
+                )
+            else:
+                warning(
+                    f"Codex session fingerprint mismatch ({mismatch_keys}); "
+                    "starting a new thread. Use --resume-codex-thread to force reuse."
+                )
+        if should_resume:
             try:
                 self._thread = self._codex.thread_resume(state.thread_id, **kwargs)
                 info(f"Resumed Codex thread: {state.thread_id}")
@@ -201,10 +321,11 @@ class CodexAppServerBackend(AgentBackendBase):
         self._thread_state = self._session_store.save(
             state.__class__(
                 thread_id=self._thread.id,
-                last_turn_id=state.last_turn_id,
+                last_turn_id=state.last_turn_id if should_resume else None,
                 model=self.model or state.model,
                 cwd=self.CWD,
                 backend="codex_app_server",
+                **fingerprint,
             )
         )
         try:

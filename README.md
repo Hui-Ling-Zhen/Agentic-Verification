@@ -52,6 +52,8 @@ veriagent output/workspace_Adder/ Adder \
 
 **`--config` is required.** Running without it exits with an error and example paths. Do not rely on a built-in default workflow inside `veriagent/`.
 
+Codex SDK thread resume is fingerprint-safe by default: saved threads are reused only when DUT, workflow, workspace input hash, and backend args match. Use `--resume-codex-thread` only when you intentionally want to override that guard.
+
 ---
 
 ## Benchmark / measurable output

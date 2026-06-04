@@ -92,7 +92,12 @@ backend:
       model: "{{OPENAI_MODEL|default(\"gpt-5.5\")}}"
       model_provider: "veriagent"
       approval_policy: "never"
+      sandbox: "workspace-write"
       personality: "pragmatic"
+      resume_codex_thread: false
+      codex_network_access: "enabled"
+      codex_write_policy: "workspace_only"
+      codex_command_policy: "codex_sandbox"
       render_files:
         "{ASSETS}/mcp_codex.toml": "{CWD}/.codex/config.toml"
       config_overrides: []

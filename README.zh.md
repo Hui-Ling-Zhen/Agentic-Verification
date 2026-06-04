@@ -55,6 +55,8 @@ veriagent output/workspace_Adder/ Adder \
 
 无需另开终端手动启动 Qwen/Claude。**不要**使用旧 `codex` CLI、langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
 
+Codex SDK thread 默认受 DUT / workflow / workspace 输入 / backend 参数指纹保护；只有确认要跨指纹复用旧 thread 时才使用 `--resume-codex-thread`。
+
 ---
 
 ## 可度量产出（Benchmark）

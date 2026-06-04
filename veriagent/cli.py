@@ -697,6 +697,16 @@ def get_args() -> argparse.Namespace:
         help="Specify the backend to use (overrides config file setting)"
     )
 
+    parser.add_argument(
+        "--resume-codex-thread",
+        action="store_true",
+        default=False,
+        help=(
+            "Force Codex SDK backend to resume the saved thread even if "
+            "DUT/workflow/workspace/backend fingerprints do not match."
+        ),
+    )
+
     parser.add_argument('--append-py-path', '-app', action='append', default=[], type=str,
                         help='Append additional Python paths or files for module loading (can be used multiple times)')
 
@@ -1074,6 +1084,8 @@ def run() -> None:
 
     if args.backend:
         args.override["backend.key_name"] = args.backend
+    if args.resume_codex_thread:
+        args.override["backend.codex_app_server.args.resume_codex_thread"] = True
 
     if args.extra_skill_path and not args.use_skill:
         raise ValueError("--extra-skill-path requires --use-skill is True")

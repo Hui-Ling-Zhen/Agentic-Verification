@@ -16,6 +16,10 @@ Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 --backend=codex_app_server   # Codex app-server SDK；持久化 thread/turn，并渲染 .codex/config.toml 连 MCP
 ```
 
+默认情况下，SDK backend 只会在 DUT、workflow、workspace 输入文件和 backend 参数指纹都匹配时恢复 `.veriagent/codex_thread.json`。如果确实要跨指纹强制复用旧 Codex thread，可显式追加 `--resume-codex-thread`。
+
+官方 SDK 路径使用 `workspace-write` sandbox，并把网络、写入和命令策略写入 `.codex/config.toml`。VeriAgent 同时会把 `{DUT}`、`{DUT}_RTL`、`Guide_Doc`、`skills` 这些任务输入目录设为只读，生成测试和报告仍写入输出目录。
+
 ## 命令模板
 
 将 `{WORKSPACE}`、`{DUT}`、`{WORKFLOW}` 替换为本 case 的值：

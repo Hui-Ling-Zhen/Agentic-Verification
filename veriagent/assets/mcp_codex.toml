@@ -1,7 +1,8 @@
 model_provider = "veriagent"
 model = "{{OPENAI_MODEL|default("gpt-5.5")}}"
 model_reasoning_effort = "xhigh"
-network_access = "enabled"
+sandbox_mode = "{{SANDBOX}}"
+network_access = "{{CODEX_NETWORK_ACCESS}}"
 disable_response_storage = true
 windows_wsl_setup_acknowledged = true
 model_verbosity = "high"
@@ -15,3 +16,12 @@ wire_api = "responses"
 [mcp_servers.veriagent]
 url = 'http://127.0.0.1:{{PORT}}/mcp'
 tool_timeout_sec=600000000000
+
+[sandbox_workspace_write]
+writable_roots = ["{{CWD}}"]
+network_access = "{{CODEX_NETWORK_ACCESS}}"
+
+[veriagent_policy]
+write_policy = "{{CODEX_WRITE_POLICY}}"
+command_policy = "{{CODEX_COMMAND_POLICY}}"
+protected_inputs = ["{{CWD}}/{{DUT}}", "{{CWD}}/{{DUT}}_RTL", "{{CWD}}/Guide_Doc", "{{CWD}}/skills"]

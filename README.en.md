@@ -50,6 +50,8 @@ veriagent output/workspace_Adder/ Adder \
 
 Do not use passive MCP (second terminal), `--backend=codex`, or `--backend=langchain` as the primary path. **`--config` is required** — the runtime does not ship a built-in UT/Formal workflow.
 
+Codex SDK thread resume is guarded by DUT/workflow/workspace/backend fingerprints. Use `--resume-codex-thread` only to force reuse intentionally.
+
 ---
 
 ## Benchmark

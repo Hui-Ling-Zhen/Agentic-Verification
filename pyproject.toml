@@ -61,6 +61,7 @@ include = ["veriagent", "veriagent.*"]
 veriagent = [
     "setting.yaml",
     "assets/*",
+    "lang/**/*",
     "lang/**/*.yaml",
     "lang/**/*.md",
     "lang/**/*.j2",

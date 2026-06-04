@@ -27,6 +27,11 @@ class CodexThreadState:
     model: str | None = None
     cwd: str | None = None
     backend: str = CODEX_APP_SERVER_BACKEND
+    dut_name: str | None = None
+    workflow_config: str | None = None
+    workflow_hash: str | None = None
+    workspace_hash: str | None = None
+    backend_args_hash: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict | None) -> "CodexThreadState":
@@ -38,6 +43,11 @@ class CodexThreadState:
             model=data.get("model"),
             cwd=data.get("cwd"),
             backend=data.get("backend", CODEX_APP_SERVER_BACKEND),
+            dut_name=data.get("dut_name"),
+            workflow_config=data.get("workflow_config"),
+            workflow_hash=data.get("workflow_hash"),
+            workspace_hash=data.get("workspace_hash"),
+            backend_args_hash=data.get("backend_args_hash"),
         )
 
     def to_dict(self) -> dict:

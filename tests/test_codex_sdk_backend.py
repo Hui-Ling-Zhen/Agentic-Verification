@@ -103,9 +103,10 @@ class FakeStageManager:
 
 
 class FakeAgent:
-    def __init__(self, workspace):
+    def __init__(self, workspace, dut_name="Demo"):
         self.workspace = workspace
-        self.dut_name = "Demo"
+        self.dut_name = dut_name
+        self.config_file = None
         self.pdb = SimpleNamespace(_mcp_server=None)
         self.stage_manager = FakeStageManager()
         self.messages = []
@@ -142,3 +143,56 @@ def test_codex_app_server_backend_runs_turn_and_persists_state(tmp_path):
     assert saved.thread_id == "thread-1"
     assert saved.last_turn_id == "turn-1"
     assert saved.model == "gpt-test"
+    assert saved.dut_name == "Demo"
+    assert saved.workspace_hash is not None
+    assert saved.backend_args_hash is not None
+
+
+def test_codex_app_server_starts_new_thread_on_fingerprint_mismatch(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    first_codex = FakeCodex()
+    first_backend = CodexAppServerBackend(
+        FakeAgent(str(workspace), dut_name="DemoA"),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        model="gpt-test",
+        codex_factory=lambda: first_codex,
+    )
+    first_backend.init()
+
+    second_codex = FakeCodex()
+    second_backend = CodexAppServerBackend(
+        FakeAgent(str(workspace), dut_name="DemoB"),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        model="gpt-test",
+        codex_factory=lambda: second_codex,
+    )
+    second_backend.init()
+
+    assert second_codex.resumed == []
+    assert second_codex.started
+
+
+def test_codex_app_server_can_force_resume_on_fingerprint_mismatch(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    first_codex = FakeCodex()
+    first_backend = CodexAppServerBackend(
+        FakeAgent(str(workspace), dut_name="DemoA"),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        model="gpt-test",
+        codex_factory=lambda: first_codex,
+    )
+    first_backend.init()
+
+    second_codex = FakeCodex()
+    second_backend = CodexAppServerBackend(
+        FakeAgent(str(workspace), dut_name="DemoB"),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        model="gpt-test",
+        resume_codex_thread=True,
+        codex_factory=lambda: second_codex,
+    )
+    second_backend.init()
+
+    assert second_codex.resumed
