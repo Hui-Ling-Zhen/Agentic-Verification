@@ -26,7 +26,7 @@ make example-bug
 ```bash
 veriagent output/workspace_Mux/ Mux \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
 ## 快速运行

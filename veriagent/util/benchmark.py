@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from veriagent.util.functions import get_abs_path_cwd_veriagent, load_json_file, save_json_file
 
-MANIFEST_SCHEMA_VERSION = "1"
+MANIFEST_SCHEMA_VERSION = "2"
 MANIFEST_FILENAME = "run_manifest.json"
 
 
@@ -37,6 +37,7 @@ def build_run_manifest(
     dut_name: str,
     workflow_config: Optional[str],
     backend: str,
+    backend_class: Optional[str],
     version: str,
     seed: Optional[int],
     stage_index: int,
@@ -45,6 +46,7 @@ def build_run_manifest(
     time_end: Optional[float],
     stages_info: Dict[Any, Any],
     is_agent_exit: bool,
+    last_turn: Optional[Dict[str, Any]] = None,
     previous: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     prev = previous or {}
@@ -60,6 +62,7 @@ def build_run_manifest(
         "workspace": os.path.abspath(workspace),
         "workflow_config": workflow_config,
         "backend": backend,
+        "backend_class": backend_class,
         "version": version,
         "seed": seed,
         "stage_index": stage_index,
@@ -74,6 +77,17 @@ def build_run_manifest(
         "started_at": prev.get("started_at") or _utc_now(),
         "updated_at": _utc_now(),
     }
+    turn = last_turn or {}
+    manifest.update({
+        "codex_thread_id": turn.get("thread_id"),
+        "codex_turn_id": turn.get("turn_id"),
+        "codex_turn_status": turn.get("status"),
+        "codex_token_usage": turn.get("usage"),
+        "codex_mcp_tool_calls": turn.get("mcp_tool_calls", 0),
+        "codex_file_changes": turn.get("file_changes", 0),
+        "codex_failure_reason": turn.get("failure_reason"),
+        "codex_event_log": turn.get("event_log"),
+    })
     return manifest
 
 
@@ -107,6 +121,16 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         backend = str(agent.cfg.backend.key_name)
     except Exception:
         pass
+    backend_class = None
+    try:
+        backend_class = agent.backend.__class__.__module__ + "." + agent.backend.__class__.__name__
+    except Exception:
+        pass
+    last_turn = {}
+    try:
+        last_turn = agent.backend.last_turn_summary()
+    except Exception:
+        last_turn = getattr(agent, "_last_backend_turn_result", {}) or {}
     previous = load_run_manifest(agent.workspace)
     stages_info = {}
     if hasattr(stage_manager, "stages"):
@@ -120,6 +144,7 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         dut_name=getattr(agent, "dut_name", ""),
         workflow_config=getattr(agent, "config_file", None),
         backend=backend,
+        backend_class=backend_class,
         version=getattr(agent, "__version__", ""),
         seed=getattr(agent, "seed", None),
         stage_index=getattr(stage_manager, "stage_index", 0),
@@ -128,6 +153,7 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         time_end=getattr(stage_manager, "time_end", None),
         stages_info=stages_info,
         is_agent_exit=agent.is_exit() if hasattr(agent, "is_exit") else False,
+        last_turn=last_turn,
         previous=previous,
     )
     return save_run_manifest(agent.workspace, manifest)

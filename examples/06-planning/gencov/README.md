@@ -41,7 +41,7 @@ make -C examples/06-planning/gencov gencov_IFU
 ```bash
 veriagent output/ IFU \
   --config examples/06-planning/gencov/GenCov/gencov.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
   --no-embed-tools
 ```
 

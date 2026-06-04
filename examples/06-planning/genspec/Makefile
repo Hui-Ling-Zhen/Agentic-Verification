@@ -18,6 +18,6 @@ init_%: clean
 
 spec_%:
 	$(CMD) output/ $* --config ./genspec.yaml --guid-doc-path ./SpecDoc/dut_spec_template.md \
-		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex --no-embed-tools $(ARGS)
+		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server --no-embed-tools $(ARGS)
 
 spec_mcp_%: spec_%

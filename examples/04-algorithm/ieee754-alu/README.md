@@ -24,7 +24,7 @@ make mcp_ALU754
 ```bash
 veriagent output/workspace_ALU754/ ALU754 \
   --config examples/04-algorithm/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
 ## 快速运行

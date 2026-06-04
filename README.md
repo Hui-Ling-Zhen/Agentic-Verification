@@ -10,7 +10,7 @@ LLM-powered **Agentic Verification** for hardware — CLI **`veriagent`**
 
 **VeriAgent runtime** owns the stage machine, Checkers, MCP verification tools, and the supervised loop. **Codex** handles each round of RTL reading, test writing, and complex edits.
 
-**Official verification path = supervised Codex** (`--backend=codex` + MCP + `--loop`). Other backends (`langchain`, passive MCP-only, etc.) are **legacy / untested** — kept for compatibility only.
+**Official verification path = supervised Codex SDK** (`--backend=codex_app_server` + MCP + `--loop`). Other backends (`codex` CLI, `langchain`, passive MCP-only, etc.) are **legacy / untested** — kept for compatibility only.
 
 Workflow definitions live **outside** the runtime under `examples/*/workflow/*.yaml`. You must pass one explicitly via `--config` (or use `make mcp_<DUT>` which selects it for you).
 
@@ -47,7 +47,7 @@ Equivalent CLI (from repo root):
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
 **`--config` is required.** Running without it exits with an error and example paths. Do not rely on a built-in default workflow inside `veriagent/`.
@@ -56,7 +56,7 @@ veriagent output/workspace_Adder/ Adder \
 
 ## Benchmark / measurable output
 
-Each run writes **`.veriagent/run_manifest.json`** in the workspace (DUT, workflow, backend, stage progress, duration).
+Each run writes **`.veriagent/run_manifest.json`** in the workspace (DUT, workflow, backend, stage progress, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, and failure reason). SDK events are appended to **`.veriagent/codex_events.jsonl`**.
 
 After one or more runs:
 
@@ -121,7 +121,8 @@ Agentic-Verification/
 
 | Path | Status |
 |------|--------|
-| Supervised Codex (`--backend=codex`, MCP, `--loop`) | **Official / tested** |
+| Supervised Codex SDK (`--backend=codex_app_server`, MCP, `--loop`) | **Official / tested** |
+| Codex CLI (`--backend=codex`) | Legacy fallback; opaque `codex exec` path |
 | `langchain` / API-only backend | Legacy, not maintained for this repo |
 | Passive MCP (no `--loop`) | Legacy, not the product path |
 

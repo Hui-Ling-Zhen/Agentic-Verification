@@ -7,7 +7,7 @@ init_cmds: []
 
 # backend
 backend:
-  key_name: "codex"  # Agentic-Verification standard: supervised Codex (MCP + loop + CmdLineBackend)
+  key_name: "codex_app_server"  # Agentic-Verification standard: supervised Codex SDK (MCP + loop + thread/turn events)
   langchain:
     clss: veriagent.abackend.langchain.VeriAgentLangChainBackend
   claude:
@@ -72,7 +72,7 @@ backend:
         "{ASSETS}/mcp_kilo.json": "{CWD}/.kilo/kilo.jsonc"
       cfg_bash_enable: false
 
-  codex:
+  codex:  # Legacy fallback: opaque codex exec CLI backend
     clss: veriagent.abackend.VeriAgentCmdLineBackend
     args:
       cli_cmd_new: "codex exec {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} --yolo < {MSG_FILE}"

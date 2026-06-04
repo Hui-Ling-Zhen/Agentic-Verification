@@ -36,6 +36,12 @@ import shutil
 import os
 
 from .abackend import get_backend
+from .abackend.base import (
+    TURN_STATUS_COMPLETED,
+    TURN_STATUS_FAILED,
+    TURN_STATUS_INTERRUPTED,
+    TURN_STATUS_REQUIRES_APPROVAL,
+)
 from langfuse import Langfuse
 from langfuse.langchain import CallbackHandler
 from uuid import uuid4
@@ -106,6 +112,7 @@ class VerifyAgent:
             no_write_targets (list, optional): List of files/directories that cannot be written to. Defaults to None.
             interaction_mode (str, optional): Interaction mode - 'standard', 'enhanced', or 'advanced'. Defaults to 'standard'.
         """
+        self.dut_name = dut_name
         saved_info = {}
         if not no_history:
             saved_info = fc.load_veriagent_info(workspace)
@@ -178,7 +185,6 @@ class VerifyAgent:
         self.thread_id = (
             thread_id if thread_id is not None else random.randint(100000, 999999)
         )
-        self.dut_name = dut_name
         self.seed = seed if seed is not None else random.randint(1, 999999)
         self.template = get_template_path(
             self.cfg.template, self.cfg.lang, template_dir
@@ -355,6 +361,7 @@ class VerifyAgent:
         self._exit_on_completion_pending = False
         self._exit_on_completion_queued = False
         self._is_work_busy = False
+        self._last_backend_turn_result = {}
         self.handle_sigint()
 
         # Initialize interaction logic based on mode
@@ -865,13 +872,51 @@ class VerifyAgent:
         self._tool__call_error = []
         try:
             if self.stream_output:
-                self.do_work_stream(instructions, config)
+                result = self.do_work_stream(instructions, config)
             else:
-                self.do_work_values(instructions, config)
+                result = self.do_work_values(instructions, config)
+            self._handle_backend_turn_result(result)
         finally:
             self._is_work_busy = False
             if self._exit_on_completion_pending:
                 self._queue_exit_on_completion()
+
+    def _handle_backend_turn_result(self, result):
+        """Apply the structured backend turn contract at the supervisor layer."""
+        if not isinstance(result, dict) or "status" not in result:
+            return
+        self._last_backend_turn_result = copy.deepcopy(result)
+        status = result.get("status")
+        if status == TURN_STATUS_COMPLETED:
+            return
+        reason = result.get("failure_reason") or f"Backend turn status: {status}"
+        if status == TURN_STATUS_REQUIRES_APPROVAL:
+            self._need_human = True
+            self._tool__call_error = [
+                self.backend.get_system_message(
+                    "The backend turn requires approval before continuing. "
+                    f"Reason: {reason}"
+                )
+            ]
+            self.set_break(True)
+            return
+        if status == TURN_STATUS_INTERRUPTED:
+            self._tool__call_error = [
+                self.backend.get_system_message(
+                    "The backend turn was interrupted. "
+                    f"Reason: {reason}"
+                )
+            ]
+            self.set_break(True)
+            return
+        if status == TURN_STATUS_FAILED:
+            self._tool__call_error = [
+                self.backend.get_system_message(
+                    "The backend turn failed. VeriAgent stopped the supervised loop "
+                    f"to avoid advancing with stale Codex state. Reason: {reason}"
+                )
+            ]
+            self.set_break(True)
 
     def is_work_busy(self):
         """Check if the agent is currently busy with work."""

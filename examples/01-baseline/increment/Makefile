@@ -34,7 +34,7 @@ init_workspace:
 
 init: init_workspace
 	$(CMD) output/workspace_Adder/ Adder --config $(INC_CONFIG) \
-		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex \
+		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
 		--no-embed-tools $(ARGS)
 
 diff:

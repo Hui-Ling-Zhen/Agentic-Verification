@@ -1,11 +1,11 @@
 # 监督式 Codex（全仓库标准运行方式）
 
-Agentic-Verification **仅支持**这一种接入方式：
+Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 
 | 层 | 职责 |
 |----|------|
 | **VeriAgent Runtime** | Stage 状态机、`Complete`/`Check`、Checker、每轮注入 `CurrentTips`、MCP 暴露验证工具 |
-| **Codex（`--backend=codex`）** | 每轮 `codex exec` 子进程：读 RTL、写 pytest、复杂代码修改 |
+| **Codex SDK（`--backend=codex_app_server`）** | 一个 VeriAgent 外层轮次对应一个 Codex Turn：读 RTL、写 pytest、复杂代码修改，并回流 thread/turn/event |
 
 ## 标准 CLI 参数
 
@@ -13,7 +13,7 @@ Agentic-Verification **仅支持**这一种接入方式：
 --mcp-server-no-file-tools   # 启动 MCP；文件类操作由 Codex 本地完成
 -s -hm --tui                 # 流式输出、人工审查点、TUI
 --loop                       # Runtime 监督循环（注入阶段任务后 spawn Codex）
---backend=codex              # CmdLineBackend → codex exec，并渲染 .codex/config.toml 连 MCP
+--backend=codex_app_server   # Codex app-server SDK；持久化 thread/turn，并渲染 .codex/config.toml 连 MCP
 ```
 
 ## 命令模板
@@ -26,7 +26,7 @@ veriagent {WORKSPACE}/ {DUT} \
   --mcp-server-no-file-tools \
   -s -hm --tui \
   --loop \
-  --backend=codex
+  --backend=codex_app_server
 ```
 
 Formal 另加：`--use-skill`、`--guid-doc-path ...`、`--output formal_test`（见各 Formal case README）。
@@ -56,7 +56,8 @@ make benchmark          # 汇总各 workspace 的 run_manifest.json
 
 | 路径 | 状态 |
 |------|------|
-| **监督式 Codex**（`--backend=codex` + MCP + `--loop`） | **官方验证路径**，本仓库 Makefile 与示例均按此测试 |
+| **监督式 Codex SDK**（`--backend=codex_app_server` + MCP + `--loop`） | **官方验证路径**，本仓库 Makefile 与示例均按此测试 |
+| `--backend=codex` / `codex exec` CLI | **Legacy**，黑盒路径，外层 runtime 无法稳定感知 Codex turn/event |
 | `--backend=langchain` / 纯 API | **Legacy**，未在本仓库持续验证 |
 | 仅 MCP、无 `--loop` 的被动模式 | **Legacy**，非产品化路径 |
 

@@ -4,7 +4,7 @@
 
 操作与安装见仓库根目录 [README.zh.md](../README.zh.md) / [README.en.md](../README.en.md)。
 
-**运行方式：** 全仓库 [**监督式 Codex**](_shared/supervised-codex.md)（`--mcp-server-no-file-tools --loop --backend=codex`）。`make mcp_*` / `make formal_mcp_*` 已内置该参数。
+**运行方式：** 全仓库 [**监督式 Codex SDK**](_shared/supervised-codex.md)（`--mcp-server-no-file-tools --loop --backend=codex_app_server`）。`make mcp_*` / `make formal_mcp_*` 已内置该参数。
 
 ---
 

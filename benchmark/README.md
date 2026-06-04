@@ -16,7 +16,15 @@ Example fields:
 |-------|---------|
 | `dut` | DUT name |
 | `workflow_config` | Path passed to `--config` |
-| `backend` | e.g. `codex` |
+| `backend` | e.g. `codex_app_server` |
+| `backend_class` | Python backend implementation |
+| `codex_thread_id` / `codex_turn_id` | Last Codex SDK thread/turn identity |
+| `codex_turn_status` | `completed`, `failed`, `interrupted`, or `requires_approval` |
+| `codex_token_usage` | Token usage payload reported by Codex |
+| `codex_mcp_tool_calls` | MCP tool calls completed in the last turn |
+| `codex_file_changes` | File paths changed in the last turn |
+| `codex_failure_reason` | Reason for non-completed turns |
+| `codex_event_log` | Path to `.veriagent/codex_events.jsonl` |
 | `all_completed` | All stages finished |
 | `stage_index` | Current stage index |
 | `stages_total` / `stages_passed` / `stages_skipped` | Stage counts |
@@ -24,7 +32,17 @@ Example fields:
 | `version` | `veriagent` version |
 | `started_at` / `updated_at` | UTC timestamps |
 
-Schema version: `schema_version: "1"` (see `veriagent/util/benchmark.py`).
+Schema version: `schema_version: "2"` (see `veriagent/util/benchmark.py`).
+
+## Per-event: `codex_events.jsonl`
+
+The SDK backend appends normalized Codex notifications to:
+
+```text
+<workspace>/.veriagent/codex_events.jsonl
+```
+
+Each line contains one event record with `kind`, `thread_id`, `turn_id`, tool/command/file data when available, token usage updates, and an UTC timestamp.
 
 ## Aggregate: `make benchmark`
 

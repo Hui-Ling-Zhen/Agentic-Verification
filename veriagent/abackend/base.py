@@ -4,6 +4,17 @@
 Agent backend base module.
 """
 
+TURN_STATUS_COMPLETED = "completed"
+TURN_STATUS_FAILED = "failed"
+TURN_STATUS_INTERRUPTED = "interrupted"
+TURN_STATUS_REQUIRES_APPROVAL = "requires_approval"
+TURN_STATUS_SET = {
+    TURN_STATUS_COMPLETED,
+    TURN_STATUS_FAILED,
+    TURN_STATUS_INTERRUPTED,
+    TURN_STATUS_REQUIRES_APPROVAL,
+}
+
 class AgentBackendBase(object):
     """
     Agent backend base class.
@@ -93,6 +104,11 @@ class AgentBackendBase(object):
         This is intentionally separate from do_work_values(): VeriAgent's
         outer loop maps one supervised round to one backend turn, while legacy
         backends may still only support opaque work execution.
+
+        Structured backends should return a dict with at least:
+        - status: completed | failed | interrupted | requires_approval
+        - response: user-visible model text, when available
+        - failure_reason: reason for non-completed turns, when available
         """
         return self.do_work_values({"messages": [prompt]}, config or {})
 

@@ -20,7 +20,7 @@ veriagent examples/05-formal/output/workspace_arbiter/ arbiter \
   --config examples/05-formal/workflow/formal.yaml \
   --guid-doc-path veriagent/lang/zh/doc/Formal_Doc/ \
   --output formal_test \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
   --use-skill
 ```
 

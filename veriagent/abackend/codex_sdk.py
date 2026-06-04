@@ -5,11 +5,19 @@
 from __future__ import annotations
 
 import os
+import json
+import datetime as _dt
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
-from .base import AgentBackendBase
+from .base import (
+    AgentBackendBase,
+    TURN_STATUS_COMPLETED,
+    TURN_STATUS_FAILED,
+    TURN_STATUS_INTERRUPTED,
+    TURN_STATUS_REQUIRES_APPROVAL,
+)
 from .codex_events import CodexRuntimeEvent, normalize_codex_notification
 from .codex_session import CodexSessionStore
 from veriagent.util.functions import get_abs_path_cwd_veriagent
@@ -69,6 +77,8 @@ class CodexAppServerBackend(AgentBackendBase):
         self._last_turn = {}
         self._token_usage: dict[str, Any] | None = None
         self._last_response = ""
+        self._event_counts = {"mcp_tool_calls": 0, "file_changes": 0}
+        self._failure_reason = None
 
     def _get_assets_path(self):
         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -119,6 +129,7 @@ class CodexAppServerBackend(AgentBackendBase):
     def init(self):
         self.CWD = self.vagent.workspace
         self.MSG_FILE = get_abs_path_cwd_veriagent(self.CWD, "codex_sdk_last_prompt.txt")
+        self.EVENT_LOG_FILE = get_abs_path_cwd_veriagent(self.CWD, "codex_events.jsonl")
         self._session_store = CodexSessionStore(self.CWD)
         self.render_config_files()
         self._codex = self._create_codex_client()
@@ -234,6 +245,9 @@ class CodexAppServerBackend(AgentBackendBase):
             self.start_or_resume_thread()
         self._last_response = ""
         self._events = []
+        self._last_turn = {}
+        self._event_counts = {"mcp_tool_calls": 0, "file_changes": 0}
+        self._failure_reason = None
         kwargs = self._clean_kwargs(self._turn_kwargs())
         self._active_turn = self._thread.turn(str(prompt), **kwargs)
         self._session_store.update(last_turn_id=self._active_turn.id)
@@ -242,8 +256,16 @@ class CodexAppServerBackend(AgentBackendBase):
             for notification in self._active_turn.stream():
                 for event in normalize_codex_notification(notification, self.CWD):
                     self._handle_event(event)
+        except Exception as exc:
+            self._failure_reason = str(exc)
+            self._last_turn = self._build_turn_summary(TURN_STATUS_FAILED, self._failure_reason)
         finally:
             self._active_turn = None
+        if not self._last_turn:
+            status = TURN_STATUS_INTERRUPTED if self.vagent.is_break() else TURN_STATUS_FAILED
+            reason = "Codex turn ended without a turn_completed event"
+            self._failure_reason = None if status == TURN_STATUS_INTERRUPTED else reason
+            self._last_turn = self._build_turn_summary(status, reason)
         return self._last_turn
 
     def stream_events(self, turn_handle=None):
@@ -251,6 +273,7 @@ class CodexAppServerBackend(AgentBackendBase):
 
     def _handle_event(self, event: CodexRuntimeEvent):
         self._events.append(event)
+        self._append_event_record(event)
         if event.kind in {"agent_message_delta", "command_output_delta"} and event.text:
             self._last_response += event.text
             self.vagent.message_echo(event.text)
@@ -258,8 +281,12 @@ class CodexAppServerBackend(AgentBackendBase):
             self.vagent.message_echo(f"[codex:{event.kind}] {event.command}")
         elif event.kind in {"mcp_tool_started", "mcp_tool_completed"} and event.tool:
             self._stat_msg_count_tool += 1 if event.kind == "mcp_tool_completed" else 0
+            if event.kind == "mcp_tool_completed":
+                self._event_counts["mcp_tool_calls"] += 1
             self.vagent.message_echo(f"[codex:{event.kind}] {event.tool}")
         elif event.kind.startswith("file_change") and event.file_paths:
+            if event.kind == "file_change_completed":
+                self._event_counts["file_changes"] += len(event.file_paths)
             self.vagent.message_echo(f"[codex:{event.kind}] {', '.join(event.file_paths)}")
 
         if event.kind == "file_observed":
@@ -271,15 +298,52 @@ class CodexAppServerBackend(AgentBackendBase):
         elif event.kind == "turn_completed":
             if event.usage:
                 self._token_usage = event.usage
-            self._last_turn = {
-                "thread_id": event.thread_id or self.current_thread_id(),
-                "turn_id": event.turn_id or self.current_turn_id(),
-                "status": event.status,
-                "usage": self._token_usage,
-                "response": self._last_response,
-            }
+            status = self._normalize_turn_status(event.status)
+            reason = None if status == TURN_STATUS_COMPLETED else f"Codex turn status: {event.status}"
+            self._failure_reason = reason
+            self._last_turn = self._build_turn_summary(
+                status,
+                reason,
+                thread_id=event.thread_id or self.current_thread_id(),
+                turn_id=event.turn_id or self.current_turn_id(),
+            )
             self._thread_state = self._session_store.update(last_turn_id=self._last_turn["turn_id"])
             self._stat_msg_count_ai += 1
+
+    def _append_event_record(self, event: CodexRuntimeEvent):
+        os.makedirs(os.path.dirname(self.EVENT_LOG_FILE), exist_ok=True)
+        record = event.to_record()
+        record["ts"] = _dt.datetime.now(tz=_dt.timezone.utc).replace(microsecond=0).isoformat()
+        with open(self.EVENT_LOG_FILE, "a", encoding="utf-8") as f:
+            json.dump(record, f, ensure_ascii=False)
+            f.write("\n")
+
+    def _normalize_turn_status(self, status):
+        if status is None:
+            return TURN_STATUS_COMPLETED
+        raw = str(status or "").lower()
+        if raw in {"completed", "success", "succeeded"} or raw.endswith(".completed"):
+            return TURN_STATUS_COMPLETED
+        if raw in {"cancelled", "canceled", "interrupted", "aborted"} or any(
+            token in raw for token in ("cancel", "interrupt", "abort")
+        ):
+            return TURN_STATUS_INTERRUPTED
+        if raw in {"requires_approval", "waiting_for_approval", "approval_required"} or "approval" in raw:
+            return TURN_STATUS_REQUIRES_APPROVAL
+        return TURN_STATUS_FAILED
+
+    def _build_turn_summary(self, status, failure_reason=None, thread_id=None, turn_id=None):
+        return {
+            "thread_id": thread_id or self.current_thread_id(),
+            "turn_id": turn_id or self.current_turn_id(),
+            "status": status,
+            "usage": self._token_usage,
+            "response": self._last_response,
+            "mcp_tool_calls": self._event_counts["mcp_tool_calls"],
+            "file_changes": self._event_counts["file_changes"],
+            "failure_reason": failure_reason,
+            "event_log": self.EVENT_LOG_FILE,
+        }
 
     def _notify_file_observed(self, paths: list[str]):
         if not paths:

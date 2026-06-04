@@ -31,7 +31,7 @@ make example-baseline
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
 说明：[`_shared/supervised-codex.md`](../../_shared/supervised-codex.md)

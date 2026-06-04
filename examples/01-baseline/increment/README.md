@@ -29,7 +29,7 @@ make increment
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/inc.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
   --no-embed-tools
 ```
 

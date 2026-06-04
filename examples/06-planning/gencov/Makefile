@@ -33,6 +33,6 @@ init_%: clean
 
 gencov_%:
 	$(CMD) $(OUT_DIR_ABS)/ $* --config ./GenCov/gencov.yaml \
-		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex --no-embed-tools $(ARGS)
+		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server --no-embed-tools $(ARGS)
 
 gencov_mcp_%: gencov_%

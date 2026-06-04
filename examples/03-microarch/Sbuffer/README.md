@@ -137,7 +137,7 @@ make example-flagship       # 仓库根目录
 ```bash
 veriagent output/workspace_Sbuffer/ Sbuffer \
   --config examples/03-microarch/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
 Mock 模式额外环境变量见下文 §5.2。

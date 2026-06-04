@@ -10,7 +10,7 @@ LLM-powered **Agentic Verification** for hardware — CLI **`veriagent`**
 
 **VeriAgent runtime** owns the stage machine, Checkers, MCP verification tools, and the supervised loop. **Codex** handles each round of RTL reading, test writing, and complex edits.
 
-**Official verification path = supervised Codex** (`--backend=codex` + MCP + `--loop`). Other backends (`langchain`, passive MCP-only, etc.) are **legacy / untested** in this repo.
+**Official verification path = supervised Codex SDK** (`--backend=codex_app_server` + MCP + `--loop`). Other backends (`codex` CLI, `langchain`, passive MCP-only, etc.) are **legacy / untested** in this repo.
 
 Workflow YAML is **externalized** under `examples/*/workflow/` — pass it with **`--config`** (required). See [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md).
 
@@ -45,16 +45,16 @@ Equivalent CLI (from repo root, after `init_Adder` via `make mcp_Adder`):
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
-Do not use passive MCP (second terminal) or `--backend=langchain` as the primary path. **`--config` is required** — the runtime does not ship a built-in UT/Formal workflow.
+Do not use passive MCP (second terminal), `--backend=codex`, or `--backend=langchain` as the primary path. **`--config` is required** — the runtime does not ship a built-in UT/Formal workflow.
 
 ---
 
 ## Benchmark
 
-Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration). Aggregate with:
+Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason). SDK events are appended to `.veriagent/codex_events.jsonl`. Aggregate with:
 
 ```bash
 make benchmark   # → benchmark/summary.csv, benchmark/runs.json
@@ -68,7 +68,8 @@ See [benchmark/README.md](/benchmark/README.md).
 
 | Path | Status |
 |------|--------|
-| Supervised Codex (`--backend=codex`, MCP, `--loop`) | **Official / tested** |
+| Supervised Codex SDK (`--backend=codex_app_server`, MCP, `--loop`) | **Official / tested** |
+| Codex CLI (`--backend=codex`) | Legacy fallback; opaque `codex exec` path |
 | `langchain` / API-only | Legacy, not maintained here |
 | Passive MCP (no `--loop`) | Legacy |
 

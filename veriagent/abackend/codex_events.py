@@ -25,6 +25,21 @@ class CodexRuntimeEvent:
     status: str | None = None
     raw: Any = None
 
+    def to_record(self) -> dict[str, Any]:
+        """Return a JSON-serializable event record for supervisor audit logs."""
+        return {
+            "kind": self.kind,
+            "thread_id": self.thread_id,
+            "turn_id": self.turn_id,
+            "item_id": self.item_id,
+            "text": self.text,
+            "tool": self.tool,
+            "command": self.command,
+            "file_paths": list(self.file_paths),
+            "usage": self.usage,
+            "status": self.status,
+        }
+
 
 def _get_attr(obj: Any, name: str, default: Any = None) -> Any:
     if obj is None:

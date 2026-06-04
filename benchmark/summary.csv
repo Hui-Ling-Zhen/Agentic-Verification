@@ -1,1 +1,1 @@
-dut,workflow_config,backend,all_completed,stage_index,stages_total,stages_passed,stages_skipped,duration_sec,version,workspace,updated_at
+dut,workflow_config,backend,backend_class,all_completed,stage_index,stages_total,stages_passed,stages_skipped,duration_sec,codex_thread_id,codex_turn_id,codex_turn_status,codex_mcp_tool_calls,codex_file_changes,codex_failure_reason,version,workspace,updated_at
