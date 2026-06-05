@@ -16,6 +16,12 @@ Workflow definitions live **outside** the runtime under `examples/*/workflow/*.y
 
 See [supervised-codex.md](examples/_shared/supervised-codex.md) for the two-layer model.
 
+### Design idea: verify by repeated checks
+
+Agentic-Verification is built around a simple loop: **ask Codex to make progress, check the result, feed the failure back, and repeat until the stage passes**. VeriAgent does not try to replace Codex as a general-purpose coding agent. Instead, it supervises Codex with explicit workflow stages, deterministic Checkers, verification-domain MCP tools, human checkpoints, and a measurable `run_manifest.json`.
+
+This is why the official path is a two-layer runtime: Codex performs the inner read/write/debug turn, while VeriAgent owns the outer verification contract. Every stage is expected to end in `Check` / `Complete`, not just in a plausible-looking answer.
+
 ---
 
 ## Requirements

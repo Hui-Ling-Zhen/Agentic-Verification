@@ -14,6 +14,12 @@
 
 Workflow **外置**于 `examples/*/workflow/`，必须通过 **`--config`** 显式传入。见 [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md)。
 
+### 设计思路：反复检查，而不是一次性生成
+
+Agentic-Verification 的核心循环很简单：**让 Codex 推进一步，运行 Checker 检查结果，把失败原因反馈给 Codex，再重复直到阶段通过**。VeriAgent 不试图替代 Codex 成为通用代码 Agent，而是用外置 workflow、确定性的 Checker、验证领域 MCP 工具、人工检查点和可度量的 `run_manifest.json` 监督 Codex。
+
+因此官方路径是双层 runtime：Codex 负责内层读写、调试和修改；VeriAgent 负责外层验证契约。每个阶段都应该以 `Check` / `Complete` 闭环，而不是只产出一段看起来合理的回答。
+
 ---
 
 ## 环境要求
