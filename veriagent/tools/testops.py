@@ -196,8 +196,8 @@ class RunUnityChipTest(RunPyTest):
 
     name: str = "RunUnityChipTest"
     description: str = ("Run tests in a specified directory or a test file. "
-                        "This tool is specifically designed for UnityChip tests.\n"
-                        "Afert running the tests, it will return:\n"
+                        "This tool runs VeriAgent/pytest verification tests.\n"
+                        "After running the tests, it will return:\n"
                         "- The stdout/stderr output of the test run (default off).\n"
                         "- a json test report, include how many tests passed/failed, an overview of the functional coverage/un-coverage data.\n"
                         "If arg `return_stdout` is True, it will return the standard output of the test run.\n"
@@ -207,15 +207,15 @@ class RunUnityChipTest(RunPyTest):
     # custom variables
     workspace: str = Field(
         default=".",
-        description="The workspace directory where the Unity tests are located."
+        description="The workspace directory where the VeriAgent/pytest tests are located."
     )
     result_dir: str = Field(
         default="uc_test_report",
-        description="Directory to save the Unity test results."
+        description="Directory to save the VeriAgent/pytest test results."
     )
     result_json_path: str = Field(
         default="toffee_report.json",
-        description="Path to save the JSON results of the Unity tests."
+        description="Path to save the JSON results of the VeriAgent/pytest tests."
     )
 
     def do(self,
@@ -227,7 +227,7 @@ class RunUnityChipTest(RunPyTest):
              pytest_ex_env:dict = {},
              run_manager: CallbackManagerForToolRun = None, return_all_checks=False,
              **kw) -> dict:
-        """Run the Unity chip tests."""
+        """Run the VeriAgent/pytest tests."""
         shutil.rmtree(self.result_dir, ignore_errors=True)
         all_pass, pyt_out, pyt_err = RunPyTest.do(self,
                                           os.path.join(self.workspace, test_dir_or_file),
@@ -244,7 +244,7 @@ class RunUnityChipTest(RunPyTest):
         }
         if os.path.exists(result_json_path):
             ret_data = load_toffee_report(result_json_path, self.workspace, all_pass, return_all_checks)
-        info(f"Run UnityChip test report:\n{json.dumps(ret_data, indent=2)}\n")
+        info(f"Run VeriAgent/pytest test report:\n{json.dumps(ret_data, indent=2)}\n")
         return ret_data, pyt_out, pyt_err
 
     def _run(self,
@@ -254,7 +254,7 @@ class RunUnityChipTest(RunPyTest):
              return_stderr: bool = False,
              timeout: int = 15,
              run_manager: CallbackManagerForToolRun = None) -> str:
-        """Run the Unity chip tests and return the output."""
+        """Run the VeriAgent/pytest tests and return the output."""
         data, pyt_out, pyt_err = self.do(
             test_dir_or_file,
             pytest_ex_args,

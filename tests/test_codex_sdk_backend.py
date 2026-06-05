@@ -196,3 +196,29 @@ def test_codex_app_server_can_force_resume_on_fingerprint_mismatch(tmp_path):
     second_backend.init()
 
     assert second_codex.resumed
+
+
+def test_codex_app_server_policy_summary_records_sandbox_boundary(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    agent = FakeAgent(str(workspace), dut_name="Demo")
+    config = SimpleNamespace(mcp_server=SimpleNamespace(port=5000))
+    backend = CodexAppServerBackend(
+        agent,
+        config=config,
+        sandbox="workspace-write",
+        codex_network_access="disabled",
+        codex_write_policy="workspace_only",
+        codex_command_policy="codex_sandbox",
+        codex_factory=lambda: FakeCodex(),
+    )
+    backend.CWD = str(workspace)
+
+    summary = backend.policy_summary()
+
+    assert summary["sandbox_mode"] == "workspace-write"
+    assert summary["network_access"] == "disabled"
+    assert summary["writable_roots"] == [str(workspace)]
+    assert summary["policy_enforcement"] == "codex_sandbox_os_permissions"
+    assert summary["veriagent_policy"] == "audit_hint_only"
+    assert str(workspace / "Demo") in summary["protected_inputs"]

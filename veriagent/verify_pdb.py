@@ -59,7 +59,7 @@ class VerifyPDB(Pdb):
     to ensure that the PDB file is valid and contains the expected structure.
     """
 
-    def __init__(self, agent, prompt = "(UnityChip) ", init_cmd=None,
+    def __init__(self, agent, prompt = "(VeriAgent) ", init_cmd=None,
                  max_loop_retry=10,
                  retry_delay=[5,10],
                  loop_alive_time=120):

@@ -3884,11 +3884,18 @@ class PdbMasterApiServer:
             backend_key_name = backend_cfg.get("key_name", "") if isinstance(backend_cfg, dict) else ""
             backend_options = []
             if isinstance(backend_cfg, dict):
-                for key in backend_cfg.keys():
+                for key, cfg_value in backend_cfg.items():
                     if key.startswith("_") or key == "key_name":
                         continue
-                    if isinstance(backend_cfg.get(key), dict):
-                        backend_options.append({"name": key, "value": key})
+                    if isinstance(cfg_value, dict):
+                        legacy = bool(cfg_value.get("legacy", False)) or cfg_value.get("status") == "legacy"
+                        status = cfg_value.get("status", "legacy" if legacy else "available")
+                        backend_options.append({
+                            "name": key,
+                            "value": key,
+                            "legacy": legacy,
+                            "status": status,
+                        })
             launch_modes = self._launch_mode_options()
             enabled_launch_modes = self._enabled_launch_modes()
             default_launch_mode = enabled_launch_modes[0] if enabled_launch_modes else "process"

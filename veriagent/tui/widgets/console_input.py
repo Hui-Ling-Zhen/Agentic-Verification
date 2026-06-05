@@ -70,7 +70,7 @@ class ConsoleInput(Vertical):
 
     is_busy: reactive[bool] = reactive(False)
 
-    def __init__(self, prompt: str = "(UnityChip) ", **kwargs) -> None:
+    def __init__(self, prompt: str = "(VeriAgent) ", **kwargs) -> None:
         super().__init__(**kwargs)
         self.prompt = prompt
         self._page_mode: bool = False

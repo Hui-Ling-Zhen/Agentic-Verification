@@ -83,7 +83,7 @@ Spec 文档是进行芯片验证与回归管理的基础。很多团队在项目
 
 5. **functional_specification_analysis：提炼功能点与检测点**  
 	- 在 `{OUT}/{DUT}_functions_and_checks.md` 中以 `<FG-*>`、`<FC-*>`、`<CK-*>` 标签分三步写出功能分组、功能点与检测点；
-	- 三个子阶段依次由 `UnityChipCheckerLabelStructure` 校验标签结构与覆盖情况，保证后续验证计划能够引用。
+	- 三个子阶段依次由 VeriAgent 标签结构 Checker（兼容类名 `UnityChipCheckerLabelStructure`）校验标签结构与覆盖情况，保证后续验证计划能够引用。
 
 6. **ref_function_line_map_generation：参考检查点新检查点差异分析**
     - 对比检查点差异

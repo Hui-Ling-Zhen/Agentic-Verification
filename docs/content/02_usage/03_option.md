@@ -107,7 +107,7 @@ veriagent ./output Adder --web-terminal '0.0.0.0:8818 mysecret'
 
 | 选项                    | 简写 | 取值/类型                  | 默认值     | 说明                                                            |
 | :---------------------- | :--- | :------------------------- | :--------- | :-------------------------------------------------------------- |
-| --config                |      | path                       | 无         | 配置文件路径，如 `--config config.yaml`                         |
+| --config                |      | path                       | 无         | 外置 workflow 路径，如 `--config examples/01-baseline/workflow/default.yaml` |
 | --template-dir          |      | path                       | 无         | 自定义模板目录                                                  |
 | --template-overwrite    |      | flag                       | 否         | 渲染模板到 workspace 时允许覆盖已存在内容                       |
 | --template-cfg-override |      | path（可多次）             | []         | 从 YAML 文件覆盖模板配置，可多次使用                            |
@@ -117,7 +117,7 @@ veriagent ./output Adder --web-terminal '0.0.0.0:8818 mysecret'
 | --guid-doc-path         |      | path（可多次）             | 无         | 使用自定义 Guide_Doc 目录（默认使用内置拷贝）                   |
 | --use-skill             |      | bool                     | 否         | 启用技能 SKILL；不添加参数为关闭 |
 | --extra-skill-path             |      | [path]                     | 无         | 除默认 SKILL 外，额外使用指定路径下的 SKILL，仅当设置--use-skill参数时才能添加该参数 |
-| --backend               |      | str                        | 无         | 指定后端（覆盖配置文件设置）                                    |
+| --backend               |      | str                        | `codex_app_server` | 指定后端；官方路径为 `codex_app_server`，其它 backend 为 legacy 兼容 |
 | --emulate-config        |      | flag                       | 否         | 仅模拟配置过程，不实际运行各阶段                                |
 
 ### 计划与 ToDo
@@ -206,8 +206,8 @@ veriagent ./output Adder --web-terminal '0.0.0.0:8818 mysecret'
 
 | 选项                       | 简写 | 取值/类型 | 默认值    | 说明                              |
 | :------------------------- | :--- | :-------- | :-------- | :-------------------------------- |
-| --mcp-server               |      | flag      | 否        | 启动 MCP Server（含文件工具）     |
-| --mcp-server-no-file-tools |      | flag      | 否        | 启动 MCP Server（无文件操作工具） |
+| --mcp-server               |      | flag      | 否        | 启动 MCP Server（含文件工具，仅 legacy/调试场景使用） |
+| --mcp-server-no-file-tools |      | flag      | 否        | 启动 MCP Server（无文件操作工具；`codex_app_server` 官方路径必需） |
 | --mcp-server-host          |      | host      | 127.0.0.1 | Server 监听地址                   |
 | --mcp-server-port          |      | int       | 5000      | Server 端口；使用 -1 自动选择可用端口 |
 
@@ -250,7 +250,7 @@ veriagent ./output Adder --web-terminal '0.0.0.0:8818 mysecret'
 ### 示例
 
 ```bash
-python3 veriagent.py ./output Adder \
+veriagent output/workspace_Adder/ Adder \
   \
   -s \
   -hm \
@@ -261,7 +261,8 @@ python3 veriagent.py ./output Adder \
   --seed 12345 \
   --sys-tips '按规范完成Adder的验证' \
   \
-  --config config.yaml \
+  --config examples/01-baseline/workflow/default.yaml \
+  --backend codex_app_server \
   --template-dir ./templates \
   --template-overwrite \
   --output unity_test \
@@ -292,7 +293,7 @@ python3 veriagent.py ./output Adder \
 ```
 
 - 位置参数
-  - ./output：workspace 工作目录
+  - output/workspace_Adder/：workspace 工作目录
   - Adder：dut 子目录名
 - 执行与交互
   - -s：流式输出
@@ -309,7 +310,7 @@ python3 veriagent.py ./output Adder \
   - --no-history：禁用历史记录加载
   - --exit-on-completion：任务完成后自动退出
 - 配置与模板
-  - --config config.yaml：从`config.yaml`加载项目配置
+  - --config examples/01-baseline/workflow/default.yaml：加载外置 workflow
   - --template-dir ./templates：指定模板目录为`./templates`
   - --template-overwrite：渲染模板时允许覆盖
   - --template-cfg-override：从 YAML 文件覆盖模板配置
@@ -319,7 +320,7 @@ python3 veriagent.py ./output Adder \
   - --guid-doc-path ./output/Guide_Doc：自定义 Guide_Doc 目录为`./output/Guide_Doc`
   - --use-skill：启用技能 SKILL 功能
   - --extra-skill-path：指定加载额外路径下的 SKILL
-  - --backend：指定后端
+  - --backend codex_app_server：使用官方监督式 Codex SDK backend
   - --emulate-config：仅模拟配置过程
 - 计划与 ToDo
   - --use-todo-tools：启用 ToDo 工具及强制附带 ToDo 信息

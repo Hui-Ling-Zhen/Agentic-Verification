@@ -34,6 +34,7 @@ import copy
 import threading
 import shutil
 import os
+import stat
 
 from .abackend import get_backend
 from .abackend.base import (
@@ -113,6 +114,7 @@ class VerifyAgent:
             interaction_mode (str, optional): Interaction mode - 'standard', 'enhanced', or 'advanced'. Defaults to 'standard'.
         """
         self.dut_name = dut_name
+        self.policy_warnings = []
         saved_info = {}
         if not no_history:
             saved_info = fc.load_veriagent_info(workspace)
@@ -262,6 +264,8 @@ class VerifyAgent:
         self.cwd_read_only_files = fc.chmode_ro_by_pattern(
             self.workspace, self.cfg.get_value("un_write_dirs", [])
         )
+        if self.cfg.backend.key_name == "codex_app_server":
+            self._check_codex_protected_inputs_read_only()
         self.tool_list_file = [
             # Directory and file listing tools
             self.tool_list_dir,
@@ -929,6 +933,34 @@ class VerifyAgent:
                 )
             ]
             self.set_break(True)
+
+    def _check_codex_protected_inputs_read_only(self):
+        """Warn if protected Codex input directories still carry write bits."""
+        for rel_path in [
+            self.dut_name,
+            f"{self.dut_name}_RTL",
+            "Guide_Doc",
+            "skills",
+        ]:
+            if not rel_path:
+                continue
+            abs_path = os.path.join(self.workspace, rel_path)
+            if not os.path.exists(abs_path):
+                continue
+            try:
+                mode = os.stat(abs_path).st_mode
+            except OSError as exc:
+                msg = f"Unable to stat protected input '{rel_path}': {exc}"
+                self.policy_warnings.append(msg)
+                warning(msg)
+                continue
+            if mode & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH):
+                msg = (
+                    f"Protected input '{rel_path}' still has write permission bits after "
+                    "read-only setup. Codex sandbox and OS permissions may not fully protect it."
+                )
+                self.policy_warnings.append(msg)
+                warning(msg)
 
     def is_work_busy(self):
         """Check if the agent is currently busy with work."""

@@ -22,6 +22,17 @@ Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 
 注意：`.codex/config.toml` 中的 `veriagent_policy` 是可审计策略声明，真正的强制边界来自 Codex sandbox 与上述 OS 只读权限。
 
+默认 `codex_network_access` 为 `enabled`。如果 case 不需要联网，建议显式关闭：
+
+```bash
+veriagent {WORKSPACE}/ {DUT} \
+  --config {WORKFLOW} \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --override backend.codex_app_server.args.codex_network_access=disabled
+```
+
+每次运行的 `.veriagent/run_manifest.json` 会记录 `sandbox_mode`、`network_access`、`writable_roots`、`protected_inputs`、`policy_enforcement` 与 `policy_warnings`，便于审计实际边界。
+
 ## 命令模板
 
 将 `{WORKSPACE}`、`{DUT}`、`{WORKFLOW}` 替换为本 case 的值：

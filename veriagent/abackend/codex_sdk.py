@@ -77,6 +77,7 @@ class CodexAppServerBackend(AgentBackendBase):
         self.codex_factory = codex_factory
 
         self.CWD = None
+        self.CODEX_CONFIG_FILE = None
         self._codex = None
         self._thread = None
         self._active_turn = None
@@ -138,6 +139,8 @@ class CodexAppServerBackend(AgentBackendBase):
                 os.makedirs(dist_path, exist_ok=True)
             with open(dst_path, "w", encoding="utf-8") as f:
                 f.write(tmp.render(context))
+            if os.path.basename(dst_path) == "config.toml" and os.path.basename(os.path.dirname(dst_path)) == ".codex":
+                self.CODEX_CONFIG_FILE = dst_path
             info(f"Rendered Codex config file from {src_path} to {dst_path}.")
 
     def init(self):
@@ -158,7 +161,8 @@ class CodexAppServerBackend(AgentBackendBase):
         except ImportError as exc:
             raise ImportError(
                 "Codex app-server SDK is required for backend 'codex_app_server'. "
-                "Install codex_app_server or use the legacy 'codex' CLI backend."
+                "Install the module 'codex_app_server' from your approved package source "
+                "or direct URL, or use a legacy backend only for compatibility."
             ) from exc
 
         app_config = AppServerConfig(
@@ -191,6 +195,24 @@ class CodexAppServerBackend(AgentBackendBase):
             "model": self.model,
             "personality": self.personality,
             "service_tier": self.service_tier,
+        }
+
+    def policy_summary(self):
+        cwd = self.CWD or self.vagent.workspace
+        dut = getattr(self.vagent, "dut_name", "")
+        protected_inputs = [
+            os.path.join(cwd, rel_path)
+            for rel_path in [dut, f"{dut}_RTL", "Guide_Doc", "skills"]
+            if rel_path
+        ]
+        return {
+            "codex_config_file": self.CODEX_CONFIG_FILE or os.path.join(cwd, ".codex", "config.toml"),
+            "sandbox_mode": self.sandbox or "workspace-write",
+            "network_access": self.codex_network_access,
+            "writable_roots": [cwd],
+            "protected_inputs": protected_inputs,
+            "policy_enforcement": "codex_sandbox_os_permissions",
+            "veriagent_policy": "audit_hint_only",
         }
 
     def _clean_kwargs(self, kwargs):

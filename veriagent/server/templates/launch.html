@@ -231,6 +231,13 @@
         <div>
           <label>Backend</label>
           <select id="backend"></select>
+          <details id="legacy-backend-panel" class="stage-note">
+            <summary>Advanced / Legacy backends</summary>
+            <label class="switch">
+              <input type="checkbox" id="show-legacy-backends">
+              Show legacy backends without Codex SDK turn/event observability
+            </label>
+          </details>
         </div>
         <div>
           <label>Launch Mode</label>
@@ -330,6 +337,8 @@ const state = {
   configOptions: [],
   backendOptions: [],
   backendKeyName: '',
+  showLegacyBackends: false,
+  lastBackendValue: '',
   launchModes: [],
   defaultLaunchMode: 'process',
   envExpanded: false,
@@ -1593,15 +1602,60 @@ function renderConfigSelect() {
   }
 }
 
+function getBackendOption(value) {
+  return state.backendOptions.find((opt) => opt.value === value);
+}
+
+function isLegacyBackend(value) {
+  return Boolean(getBackendOption(value)?.legacy);
+}
+
+function confirmLegacyBackendSelection(value) {
+  if (!isLegacyBackend(value)) return true;
+  return window.confirm(
+    `Backend "${value}" is marked legacy. It does not provide the Codex SDK ` +
+    `thread/turn/event contract, so run_manifest and supervision may be incomplete.\n\n` +
+    `Use codex_app_server for the official supervised path. Continue with legacy backend?`
+  );
+}
+
 function renderBackendSelect() {
   const select = document.getElementById('backend');
   if (!select) return;
-  select.innerHTML = state.backendOptions.map((opt) => `<option value="${esc(opt.value)}">${esc(opt.name)}</option>`).join('');
-  if (state.backendKeyName && state.backendOptions.some((opt) => opt.value === state.backendKeyName)) {
-    select.value = state.backendKeyName;
-  } else if (state.backendOptions.length > 0) {
-    select.value = state.backendOptions[0].value;
+  const previous = select.value || state.lastBackendValue || state.backendKeyName;
+  const official = state.backendOptions.filter((opt) => !opt.legacy);
+  const legacy = state.backendOptions.filter((opt) => opt.legacy);
+  const parts = [];
+  if (official.length) {
+    parts.push(`<optgroup label="Official">`);
+    parts.push(...official.map((opt) => `<option value="${esc(opt.value)}">${esc(opt.name)}${opt.status ? ` (${esc(opt.status)})` : ''}</option>`));
+    parts.push(`</optgroup>`);
   }
+  if (state.showLegacyBackends && legacy.length) {
+    parts.push(`<optgroup label="Advanced / Legacy">`);
+    parts.push(...legacy.map((opt) => `<option value="${esc(opt.value)}" data-legacy="true">${esc(opt.name)} (${esc(opt.status || 'legacy')})</option>`));
+    parts.push(`</optgroup>`);
+  }
+  select.innerHTML = parts.join('');
+  const legacyPanel = document.getElementById('legacy-backend-panel');
+  const legacyToggle = document.getElementById('show-legacy-backends');
+  if (legacyPanel) {
+    legacyPanel.style.display = legacy.length ? '' : 'none';
+    legacyPanel.open = state.showLegacyBackends;
+  }
+  if (legacyToggle) {
+    legacyToggle.checked = state.showLegacyBackends;
+  }
+  if (previous && [...select.options].some((opt) => opt.value === previous)) {
+    select.value = previous;
+  } else if (state.backendKeyName && [...select.options].some((opt) => opt.value === state.backendKeyName)) {
+    select.value = state.backendKeyName;
+  } else if (official.length > 0) {
+    select.value = official[0].value;
+  } else if (select.options.length > 0) {
+    select.value = select.options[0].value;
+  }
+  state.lastBackendValue = select.value;
 }
 
 function setSelectValueIfAvailable(id, value) {
@@ -1662,6 +1716,7 @@ async function initPage() {
     state.launchConfig = configData.default_args || {};
     state.backendOptions = configData.backend_options || [];
     state.backendKeyName = configData.backend_key_name || '';
+    state.showLegacyBackends = isLegacyBackend(state.backendKeyName) || isLegacyBackend(state.launchConfig?.backend);
     state.launchModes = configData.launch_modes || [];
     state.defaultLaunchMode = configData.default_launch_mode || 'process';
     renderBackendSelect();
@@ -1947,10 +2002,24 @@ document.addEventListener('input', (event) => {
     updateLaunchState();
     return;
   }
+  if (event.target.id === 'show-legacy-backends') {
+    state.showLegacyBackends = event.target.checked;
+    renderBackendSelect();
+    syncBackendMcpFileToolsOption();
+    syncCfgBashOverrideExtraArgs();
+    updateLaunchState();
+    return;
+  }
   if ([
     'task-name', 'dut-name', 'config-path', 'backend', 'launch-mode', 'output', 'master-override',
   ].includes(event.target.id)) {
     if (event.target.id === 'backend') {
+      const selected = event.target.value.trim();
+      if (selected !== state.lastBackendValue && !confirmLegacyBackendSelection(selected)) {
+        event.target.value = state.lastBackendValue || 'codex_app_server';
+        return;
+      }
+      state.lastBackendValue = event.target.value;
       syncBackendMcpFileToolsOption();
       syncCfgBashOverrideExtraArgs();
     }

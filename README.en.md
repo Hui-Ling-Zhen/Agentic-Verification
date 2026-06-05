@@ -19,8 +19,9 @@ Workflow YAML is **externalized** under `examples/*/workflow/` — pass it with 
 ## Requirements
 
 - Python 3.11+, Linux / macOS, 4GB+ RAM
-- [Codex CLI](https://github.com/openai/codex) on `PATH`
-- Codex app-server Python SDK (`codex_app_server`) and MCP Python package (`mcp`) installed by `requirements.txt`
+- [Codex CLI](https://github.com/openai/codex) executable on `PATH`
+- MCP Python package (`mcp`) installed by `requirements.txt`
+- Codex app-server Python SDK importable as `codex_app_server`. This SDK is not available from the public PyPI index under that name; install it from your approved package source or direct URL before using `--backend=codex_app_server`.
 - [picker](https://github.com/XS-MLVP/picker)
 - OpenAI-compatible endpoint for Codex:
 
@@ -38,6 +39,8 @@ export OPENAI_MODEL=...
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
 pip3 install -r requirements.txt
+# Then install the Codex app-server SDK from your approved package source:
+# pip3 install "${CODEX_APP_SERVER_PACKAGE}"
 make example-baseline
 ```
 
@@ -53,11 +56,20 @@ Do not use passive MCP (second terminal), `--backend=codex`, or `--backend=langc
 
 Codex SDK thread resume is guarded by DUT/workflow/workspace/backend fingerprints. Use `--resume-codex-thread` only to force reuse intentionally.
 
+Sandbox note: `veriagent_policy` in `.codex/config.toml` is an audit hint, not a policy engine. Hard boundaries come from Codex sandbox settings, `writable_roots`, and OS read-only permissions on protected inputs. Network access defaults to `enabled`; disable it when a case does not need network:
+
+```bash
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --override backend.codex_app_server.args.codex_network_access=disabled
+```
+
 ---
 
 ## Benchmark
 
-Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason). SDK events are appended to `.veriagent/codex_events.jsonl`. Aggregate with:
+Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason, and sandbox/policy audit fields). SDK events are appended to `.veriagent/codex_events.jsonl`. Aggregate with:
 
 ```bash
 make benchmark   # → benchmark/summary.csv, benchmark/runs.json

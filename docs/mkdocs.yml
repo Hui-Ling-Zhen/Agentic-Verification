@@ -55,14 +55,16 @@ nav:
       - 工具安装: content/01_start/01_installation.md
       - 快速入门: content/01_start/02_quickstart.md
   - 功能介绍:
-      - MCP 集成: content/02_usage/00_mcp.md
       - 直接使用: content/02_usage/01_direct.md
+      - Web Master 使用指南: content/02_usage/07_web_master.md
+      - TUI: content/02_usage/04_tui.md
       - 人机协同验证: content/02_usage/02_assit.md
       - 参数说明: content/02_usage/03_option.md
-      - TUI: content/02_usage/04_tui.md
       - FAQ: content/02_usage/05_faq.md
       - LLM Check & Refinement: content/02_usage/06_llm_check.md
-      - Web Master 使用指南: content/02_usage/07_web_master.md
+      - Skills: content/02_usage/08_skill.md
+      - Legacy 被动 MCP: content/02_usage/00_mcp.md
+      - Legacy Qwen MCP: content/02_usage/legacy_qwen_mcp.md
   - 定制开发:
       - 概览: content/03_develop/00_index.md
       - 定制开发入门: content/03_develop/01_quick_start.md

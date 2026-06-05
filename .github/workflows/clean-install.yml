@@ -1,0 +1,67 @@
+name: clean-install
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+          python -m pip install pytest
+
+      - name: Optionally install Codex app-server SDK
+        if: ${{ env.CODEX_APP_SERVER_PACKAGE != '' }}
+        run: |
+          echo "Installing Codex app-server SDK from CODEX_APP_SERVER_PACKAGE"
+          python -m pip install "${CODEX_APP_SERVER_PACKAGE}"
+
+      - name: Smoke import and CLI
+        run: |
+          python -c "from veriagent.abackend.codex_sdk import CodexAppServerBackend; print(CodexAppServerBackend.__name__)"
+          veriagent --help
+
+      - name: Validate Codex SDK package source contract
+        run: |
+          test -f requirements-codex-sdk.txt
+          python - <<'PY'
+          from pathlib import Path
+          text = Path("requirements-codex-sdk.txt").read_text()
+          assert "CODEX_APP_SERVER_PACKAGE" in text
+          assert "approved private index or direct URL" in text
+          print("ok: Codex SDK package source documented")
+          PY
+
+      - name: Validate example workflow config
+        run: |
+          python - <<'PY'
+          from veriagent.util.config import load_yaml_with_env_vars
+          data = load_yaml_with_env_vars("examples/01-baseline/workflow/default.yaml")
+          assert data.get("stage"), "default workflow must define stage"
+          print("ok: examples/01-baseline/workflow/default.yaml")
+          PY
+
+      - name: Run core supervised Codex tests
+        run: |
+          pytest -q \
+            tests/test_cli_official_path.py \
+            tests/test_codex_sdk_backend.py \
+            tests/test_benchmark_manifest.py
+
+      - name: Validate optional Codex SDK module
+        if: ${{ env.CODEX_APP_SERVER_PACKAGE != '' }}
+        run: |
+          python -c "import codex_app_server; print('ok: codex_app_server import')"

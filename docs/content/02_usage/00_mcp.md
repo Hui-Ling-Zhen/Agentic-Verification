@@ -1,29 +1,44 @@
-# MCP 集成模式（推荐）
+# Legacy 被动 MCP 模式
 
-## MCP 集成（推荐）集成 Code Agent
+!!! warning "非官方主路径"
+    当前官方验证路径是 **监督式 Codex SDK**：`--backend=codex_app_server` + `--loop` + `--config examples/.../workflow/*.yaml`。请优先阅读 [快速入门](../01_start/02_quickstart.md) 和仓库中的 `examples/_shared/supervised-codex.md`。
 
-**注：以下输出目录以`output`为例，可自行修改为其他目录**。
+被动 MCP 模式指的是：VeriAgent 只启动 MCP server，另一个外部 Code Agent 客户端连接该 MCP server，并由用户在另一个终端手动推动任务。这是历史兼容模式，不具备官方 SDK 路径的完整 turn/event/manifest 可观测性。
 
-基于 MCP 的外部编程 CLI 协作方式。该模式能与所有支持 MCP-Server 调用的 LLM 客户端进行协同验证，例如：Cherry Studio、Claude Code、 Gemini-CLI、VS Code Copilot、Qwen-Code 等。
-平常使用是直接使用`make`命令的，要看详细命令可参考[快速开始](../01_start/02_quickstart.md)，也可以直接查看项目根目录的`Makefile`文件。
+## 为什么降级为 Legacy
 
-- 准备 RTL 和对应的 SPEC 文档。推荐从 [`examples/01-baseline/adder`](/examples/01-baseline/adder) 等故事线目录获取，或通过 Makefile 的 `DUT_SRC_*` 映射指定源路径（见根目录 `Makefile`）。
+与 `codex_app_server` 相比，被动 MCP 模式存在几个结构性限制：
 
-- 打包 RTL，将文档放入工作目录并且启动 MCP server：`make mcp_{dut}`，`{dut}`为对应的模块。此处如果使用的`Adder`，则命令为`make mcp_Adder`
+- 外层 VeriAgent runtime 不能稳定感知外部 Agent 的每个 turn。
+- 失败、暂停、审批和工具调用状态不能统一进入 backend turn contract。
+- `.veriagent/codex_events.jsonl` 和 `run_manifest.json` 无法完整记录内层 Agent 行为。
+- 需要用户手动维护两个进程和上下文，容易出现阶段状态与 Agent 对话状态不一致。
 
-- 在支持 MCP client 的应用中配置 JSON：
+## 仍然适用的场景
 
-  ```json
-  {
-  	"mcpServers": {
-  		"unitytest": {
-  			"httpUrl": "http://localhost:5000/mcp",
-  			"timeout": 10000
-  		}
-  	}
-  }
-  ```
+该模式只建议用于：
 
-- 启动应用：此处使用的 Qwen Code，在`VeriAgent/output`启动 qwen,然后输入提示词。
-- 输入提示词：
-  > 请通过工具`RoleInfo`获取你的角色信息和基本指导，然后完成任务。工具`ReadTextFile`读取文件。你需要在当前工作目录进行文件操作，不要超出该目录。
+- 兼容旧 Qwen / Gemini / Copilot / Claude Code MCP 客户端。
+- 调试 VeriAgent MCP 工具本身。
+- 对比不同 Code Agent 的工具调用行为。
+
+如果目标是运行本仓库 examples，请使用：
+
+```bash
+make example-baseline
+```
+
+或显式 CLI：
+
+```bash
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools \
+  -s -hm --tui \
+  --loop \
+  --backend=codex_app_server
+```
+
+## 旧 Qwen MCP 文档
+
+旧 Qwen 双终端流程已移到 [Legacy Qwen MCP](legacy_qwen_mcp.md)。该页面仅用于兼容和排障，不作为新用户 onboarding 路径。

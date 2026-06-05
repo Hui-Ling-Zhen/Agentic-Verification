@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-VeriAgent - UnityChip Verification Agent
+VeriAgent - Agentic-Verification runtime.
 
-A comprehensive AI-powered hardware verification framework.
+A supervised Codex SDK runtime for AI-powered hardware verification.
 """
 
 from .version import *

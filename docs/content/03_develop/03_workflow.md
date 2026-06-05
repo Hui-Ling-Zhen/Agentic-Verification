@@ -2,13 +2,16 @@
 
 > 💡 **架构理解**：在学习工作流配置之前，建议先阅读 [架构与工作原理](02_architecture.md) 了解 VeriAgent 的核心概念
 
+!!! note "兼容命名说明"
+    文中出现的 `UnityChipChecker*` 是历史兼容类名，当前产品语义上均属于 VeriAgent Checker。为避免破坏已有 workflow YAML 的 `clss` 配置，类名暂时保留；新文档叙事统一使用 VeriAgent / Agentic-Verification。
+
 整体采用“按阶段渐进推进”的方式，每个阶段都有明确目标、产出与通过标准；完成后用工具 Check 验证并用 Complete 进入下一阶段。若阶段包含子阶段，需按顺序 逐一完成子阶段并各自通过 Check。
 
 - 顶层阶段总数：11（见 `examples/01-baseline/workflow/default.yaml`；各故事线可在 `examples/*/workflow/` 独立定制）
 - 推进原则：未通过的阶段不可跳转；可用工具 CurrentTips 获取当前阶段详细指导；需要回补时可用 GotoStage 回到指定阶段。
 - 三种跳/不跳过阶段方法：
-  - 在项目根 `config.yaml` 的某个 `stage` 字段下面 `-name` 元素里的 `skip` 键配置 `true/false` 来跳过/不跳过。
-  - 命令行启动时可用 `--skip/- -unskip someStage` 来控制跳过/不跳过某阶段。
+  - 在外置 workflow 文件（例如 `examples/01-baseline/workflow/default.yaml`，或你通过 `--config` 指定的 YAML）里的某个 `stage` 条目配置 `skip: true/false`。
+  - 命令行启动时可用 `--skip` / `--unskip` 控制跳过或取消跳过某阶段。
   - 在 tui 启动后可用 `skip_stage/unskip_stage someStage` 来控制临时跳过/不跳过某阶段。
 
 ## 阶段复盘（Web 视角）
@@ -428,15 +431,15 @@ hmcheck_set 24 true   # 10.1 分批测试用例实现与对应bug分析
 
 ### 原理说明
 
-- 工作流定义在 example 配置 `examples/<storyline>/workflow/default.yaml`（或 `--config` 指定文件）的顶层 `stage:` 列表。
+- 工作流定义在外置 example 配置 `examples/<storyline>/workflow/*.yaml`（或 `--config` 指定文件）的顶层 `stage:` 列表。
 - 配置加载顺序：setting.yaml → ~/.veriagent/setting.yaml → `empty.yaml` scaffold → workspace setting → `--config` workflow YAML → CLI `--override`。
-- 重要：列表类型（如 `stage` 列表）在合并时是“整体替换”，不是元素级合并；因此要“增删改”阶段，需要把默认的 `stage` 列表复制到你的项目 `config.yaml`，在此基础上编辑。
-- 临时不执行某阶段：优先使用 CLI `--skip` 跳过该索引；持久跳过可在你的 `config.yaml` 中把该阶段条目的 `skip: true` 写上（同样需要提供完整的 stage 列表）。
+- 重要：列表类型（如 `stage` 列表）在合并时是“整体替换”，不是元素级合并；因此要“增删改”阶段，需要复制一个 example workflow 到你的项目目录，例如 `examples/<storyline>/workflow/my_workflow.yaml`，在此基础上编辑并通过 `--config` 显式加载。
+- 临时不执行某阶段：优先使用 CLI `--skip` 跳过该索引；持久跳过可在你的外置 workflow YAML 中把该阶段条目的 `skip: true` 写上（同样需要提供完整的 stage 列表）。
 
 ### 增加阶段
 
 - 需求：在“全面验证执行”之后新增一个“静态检查与 Lint 报告”阶段，要求生成 `<OUT>/{DUT}_lint_report.md` 并做格式检查。
-- 做法：在项目根 `config.yaml` 中提供完整的 `stage:` 列表，并在合适位置插入如下条目（片段示例，仅展示新增项，实际需要放入你的完整 stage 列表里）。
+- 做法：复制一个 `examples/*/workflow/*.yaml` 为你的自定义 workflow，并在完整的 `stage:` 列表中合适位置插入如下条目（片段示例，仅展示新增项，实际需要放入你的完整 stage 列表里）。
 
 ```yaml
 stage:
@@ -465,7 +468,7 @@ stage:
 ### 减少子阶段
 
 - 场景：在“功能规格分析与测试点定义”中，临时不执行“功能点定义（FC）”子阶段。
-- 推荐做法：运行时使用 CLI `--skip` 跳过该索引；若需长期配置，复制默认 `stage:` 列表到你的 `config.yaml`，在父阶段 `functional_specification_analysis` 的 `stage:` 子列表里移除对应子阶段条目，或为该子阶段加 `skip: true`。
+- 推荐做法：运行时使用 CLI `--skip` 跳过该索引；若需长期配置，复制默认 `stage:` 列表到你的外置 workflow YAML，在父阶段 `functional_specification_analysis` 的 `stage:` 子列表里移除对应子阶段条目，或为该子阶段加 `skip: true`。
 
 子阶段移除（片段示例，仅展示父阶段结构与其子阶段列表）：
 
@@ -488,7 +491,7 @@ stage:
 小贴士
 
 - 仅需临时跳过：用 `--skip`/`--unskip` 最快，无需改配置文件。
-- 需要永久增删：复制默认 `stage:` 列表到项目 `config.yaml`，编辑后提交到仓库；注意列表是整体覆盖，别只贴新增/删减的片段。
+- 需要永久增删：复制默认 `stage:` 列表到外置 workflow YAML，编辑后提交到仓库；注意列表是整体覆盖，别只贴新增/删减的片段。
 - 新增阶段的检查器可复用现有类（如 Markdown/Fixture/API/Coverage/TestCase 等），也可以扩展自定义检查器（放在 `veriagent/checkers/` 并以可导入路径填写到 `clss`）。
 
 ## 定制校验器（checker）
@@ -502,7 +505,7 @@ stage:
   - `args`: 传给检查器构造函数的参数，支持模板变量（如 `{OUT}`、`{DUT}`）
   - `extra_args`: 可选，部分检查器支持自定义提示/策略（如 `fail_msg`、`batch_size`、`pre_report_file` 等）
 - 解析与实例化：`veriagent/stage/vstage.py` 会读取 `checker:`，按 `clss/args` 生成实例；运行期由 `ToolStdCheck/Check` 调用其 `do_check()`。
-- 合并语义：配置合并时列表是“整体替换”，要在项目 `config.yaml` 修改某个阶段的 `checker:`，建议复制该阶段条目并完整替换其 `checker:` 列表。
+- 合并语义：配置合并时列表是“整体替换”，要在外置 workflow YAML 修改某个阶段的 `checker:`，建议复制该阶段条目并完整替换其 `checker:` 列表。
 
 ### 增加 checker
 
@@ -543,7 +546,7 @@ from typing import Tuple
 import os
 from veriagent.checkers.base import Checker
 
-class UnityChipCheckerMyCustomCheck(Checker):
+class VeriAgentCheckerMyCustomCheck(Checker):
 		def __init__(self, target_file: str, threshold: int = 1, **kw):
 				self.target_file = target_file
 				self.threshold = threshold
@@ -562,7 +565,7 @@ class UnityChipCheckerMyCustomCheck(Checker):
 ```yaml
 checker:
 	- name: my_custom_check
-		clss: "UnityChipCheckerMyCustomCheck" # 若未在 __init__.py 导出，写完整路径 mypkg.mychk.UnityChipCheckerMyCustomCheck
+		clss: "VeriAgentCheckerMyCustomCheck" # 若未在 __init__.py 导出，写完整路径 mypkg.mychk.VeriAgentCheckerMyCustomCheck
 		args:
 			target_file: "{OUT}/{DUT}_something.py"
 			threshold: 2

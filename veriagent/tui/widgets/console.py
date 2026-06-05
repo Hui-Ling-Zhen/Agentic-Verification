@@ -39,7 +39,7 @@ class ConsoleWidget(AutoScrollMixin, Vertical):
         Binding("shift+right", "clear_console", "Clear console", show=False),
     ]
 
-    def __init__(self, prompt: str = "(UnityChip) ", **kwargs) -> None:
+    def __init__(self, prompt: str = "(VeriAgent) ", **kwargs) -> None:
         super().__init__(**kwargs)
         self.border_title = "Console"
         self._prompt = prompt

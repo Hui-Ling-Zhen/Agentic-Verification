@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from veriagent.util.functions import get_abs_path_cwd_veriagent, load_json_file, save_json_file
 
-MANIFEST_SCHEMA_VERSION = "2"
+MANIFEST_SCHEMA_VERSION = "3"
 MANIFEST_FILENAME = "run_manifest.json"
 
 
@@ -47,6 +47,7 @@ def build_run_manifest(
     stages_info: Dict[Any, Any],
     is_agent_exit: bool,
     last_turn: Optional[Dict[str, Any]] = None,
+    policy: Optional[Dict[str, Any]] = None,
     previous: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     prev = previous or {}
@@ -87,6 +88,17 @@ def build_run_manifest(
         "codex_file_changes": turn.get("file_changes", 0),
         "codex_failure_reason": turn.get("failure_reason"),
         "codex_event_log": turn.get("event_log"),
+    })
+    policy_data = policy or {}
+    manifest.update({
+        "codex_config_file": policy_data.get("codex_config_file"),
+        "sandbox_mode": policy_data.get("sandbox_mode"),
+        "network_access": policy_data.get("network_access"),
+        "writable_roots": policy_data.get("writable_roots", []),
+        "protected_inputs": policy_data.get("protected_inputs", []),
+        "policy_enforcement": policy_data.get("policy_enforcement"),
+        "veriagent_policy": policy_data.get("veriagent_policy"),
+        "policy_warnings": policy_data.get("policy_warnings", []),
     })
     return manifest
 
@@ -131,6 +143,15 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         last_turn = agent.backend.last_turn_summary()
     except Exception:
         last_turn = getattr(agent, "_last_backend_turn_result", {}) or {}
+    policy = {}
+    try:
+        policy = agent.backend.policy_summary()
+    except Exception:
+        policy = {}
+    if isinstance(policy, dict):
+        warnings = list(policy.get("policy_warnings", []) or [])
+        warnings.extend(getattr(agent, "policy_warnings", []) or [])
+        policy["policy_warnings"] = warnings
     previous = load_run_manifest(agent.workspace)
     stages_info = {}
     if hasattr(stage_manager, "stages"):
@@ -154,6 +175,7 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         stages_info=stages_info,
         is_agent_exit=agent.is_exit() if hasattr(agent, "is_exit") else False,
         last_turn=last_turn,
+        policy=policy,
         previous=previous,
     )
     return save_run_manifest(agent.workspace, manifest)

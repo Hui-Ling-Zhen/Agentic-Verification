@@ -1,36 +1,128 @@
 # FAQ
 
-## FAQ
+## 为什么运行时必须传 `--config`？
 
-- 模型切换：在 `config.yaml` 改 `openai.model_name`
-- 验证过程中出现错误怎么办：使用 `Ctrl+C` 进入交互模式，通过 `status` 查看当前状态，使用 `help` 获取调试命令。
-- Check 失败：先 `ReadTextFile` 阅读 reference_files；再按返回信息修复，循环 RunTestCases → Check
-- 自定义阶段：修改对应 example 的 `examples/<storyline>/workflow/default.yaml`；或用 `--override` 临时覆盖
-- 添加工具：`veriagent/tools/` 下新建类，继承 `UCTool`，运行时 `--ex-tools YourTool`
-- MCP 连接失败：检查端口/防火墙，改 `--mcp-server-port`；无嵌入可加 `--no-embed-tools`
-- 只读保护：通过 `--no-write/--nw` 指定路径限制写入（必须位于 workspace 内）
+Agentic-Verification 不在 runtime 内置 UT/Formal workflow。Workflow 已外置到 `examples/*/workflow/*.yaml`，普通运行必须显式传入：
 
-### VeriAgent 闪退，如何恢复验证流程？
+```bash
+--config examples/01-baseline/workflow/default.yaml
+```
 
-- 确保 VeriAgent 和目前正在使用的 Code Agent(如 Qwen Code Cli)都已经退出，若没有则手动退出
-- 重新启动 VeriAgent，它会自动继续之前的工作流
-- 重新启动 Code Agent 并输入“继续”即可恢复之前的验证流程
+根目录 `config.yaml` 不是默认 workflow；它只保留为历史/模型配置示例。
 
-### 为什么快速启动找不到 config.yaml/定制流程时找不到 config.yaml?
+## 官方启动命令是什么？
 
-- 使用 pip 安装后并没有`config.yaml`那个文件，所以在快速启动的[启动 MCP Server](../01_start/02_quickstart.md/#启动-mcp-server)没有加`--config config.yaml`这个选项。
-- 可以通过在工作目录添加`config.yaml`文件并且加上`--config config.yaml`参数来启动；也可以使用克隆仓库来使用 VeriAgent 的方式来解决。
+推荐：
 
-### 运行中如何调整消息窗口与 token 上限？
+```bash
+make example-baseline
+```
 
-- 在 TUI 输入：`message_config` 查看当前配置；
-- 设置：`message_config max_keep_msgs 8` 或 `message_config max_token 4096`；
-- 作用范围：影响会话历史裁剪与送入 LLM 的最大 token 上限（通过 Summarization/Trim 节点生效）。
+等价 CLI：
 
-### 文档中的 “CK bug” 要改吗？
+```bash
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools \
+  -s -hm --tui \
+  --loop \
+  --backend=codex_app_server
+```
 
-- 是。术语统一为 “TC bug”。同时确保 bug 文档里的 `<TC-*>` 能匹配失败用例（文件/类/用例名）。
+## 为什么 `codex_app_server` 时必须开 `--loop` 和 `--mcp-server-no-file-tools`？
 
-### 为什么找不到 WriteTextFile 工具？
+`codex_app_server` 是官方监督式路径：VeriAgent 外层 runtime 每一轮注入 stage 任务，Codex SDK 内层 runtime 执行一个 turn，并通过 MCP 调用 `Check` / `Complete` 等验证工具。
 
-- 该工具已移除。请改用 `EditTextFile`（支持 overwrite/append/replace 三种模式）或其他文件工具（Copy/Move/Delete 等）。
+如果没有 `--loop`，外层不会持续监督推进；如果没有 MCP，Codex 无法调用验证工具；如果使用全量 MCP 文件工具，则文件权限边界会变得模糊。CLI 会对官方路径做 fail-fast 校验。
+
+## `codex_app_server` import 失败怎么办？
+
+公开 PyPI 当前没有 `codex_app_server` 这个发行包名。请从团队批准的包源或 direct URL 安装 Codex app-server Python SDK，例如：
+
+```bash
+pip install "${CODEX_APP_SERVER_PACKAGE}"
+python -c "import codex_app_server"
+```
+
+基础依赖仍通过：
+
+```bash
+pip install -r requirements.txt
+```
+
+## 如何恢复中断的任务？
+
+默认情况下，Codex SDK thread resume 受指纹保护：DUT、workflow、workspace 输入和 backend 参数一致时才复用旧 thread。
+
+正常恢复：
+
+```bash
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+```
+
+只有确认要跨指纹复用旧 Codex thread 时，才使用：
+
+```bash
+--resume-codex-thread
+```
+
+## Check 失败怎么办？
+
+按顺序处理：
+
+1. 用 `StdCheck` 查看失败日志。
+2. 阅读当前 stage 的 `reference_files`。
+3. 修复生成的测试、文档或环境。
+4. 重新运行 `Check`。
+5. 通过后调用 `Complete` 推进阶段。
+
+## 运行结果在哪里？
+
+典型输出：
+
+```text
+<workspace>/
+├── unity_test/ 或 formal_test/
+├── uc_test_report/
+└── .veriagent/
+    ├── run_manifest.json
+    ├── codex_events.jsonl
+    └── codex_thread.json
+```
+
+`run_manifest.json` 是 benchmark 和审计入口，包含 stage 进度、Codex thread/turn、tool calls、file changes、failure reason、sandbox/policy 字段。
+
+## 如何汇总 benchmark？
+
+```bash
+make benchmark
+```
+
+输出：
+
+```text
+benchmark/summary.csv
+benchmark/runs.json
+```
+
+## 如何关闭 Codex 网络访问？
+
+默认 `codex_network_access=enabled`。不需要联网的 case 建议显式关闭：
+
+```bash
+--override backend.codex_app_server.args.codex_network_access=disabled
+```
+
+## `veriagent_policy` 是强制策略吗？
+
+不是。`.codex/config.toml` 中的 `veriagent_policy` 是 audit hint，不是 Codex 原生强制策略。真正强边界来自 Codex sandbox、`writable_roots` 和 OS 只读权限。
+
+## 为什么找不到 `WriteTextFile` 工具？
+
+该工具已移除。请使用 `EditTextFile`（overwrite / append / replace）或其它文件工具。官方 Codex SDK 路径下，通用文件操作主要由 Codex 本地 runtime 执行，MCP 侧只保留验证域工具。
+
+## 旧 Qwen 双终端流程还支持吗？
+
+作为 legacy 兼容保留，但不再作为推荐路径。请参考 [Legacy Qwen MCP](legacy_qwen_mcp.md)。

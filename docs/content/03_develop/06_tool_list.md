@@ -75,8 +75,8 @@
     - return_stderr: bool — 是否返回标准错误
     - timeout: int — 超时秒数（默认 15）
 
-- RunUnityChipTest（RunUnityChipTest）
-  - 用途：面向 UnityChip 项目封装的测试执行，产生 toffee_report.json 等结果。
+- RunUnityChipTest（兼容工具名）
+  - 用途：面向 VeriAgent/pytest 验证流程封装的测试执行，产生 toffee_report.json 等结果。
   - 参数：同 RunPyTest；另含内部字段（workspace/result_dir/result_json_path）。
 
 ## 文件/路径/文本类

@@ -36,6 +36,18 @@ def info(*k, **w):
     print(*k, **w)
 
 
+LEGACY_BACKENDS = {
+    "codex",
+    "qwen",
+    "langchain",
+    "claude",
+    "opencode",
+    "copilot",
+    "iflow",
+    "kilo",
+}
+
+
 class WorkspaceArchiveError(ValueError):
     """Raised when a workspace archive cannot be downloaded, extracted, or validated."""
 
@@ -299,6 +311,41 @@ def _require_workflow_config(args) -> None:
         "Load a case workflow from examples/*/workflow/*.yaml.\n"
     )
     info(_workflow_config_examples())
+    sys.exit(1)
+
+
+def _validate_official_codex_app_server_path(args) -> None:
+    """Fail fast when the official backend is launched without supervisor semantics."""
+    if args.emulate_config or getattr(args, "as_master", None) is not None:
+        return
+
+    effective_backend = (args.override or {}).get("backend.key_name") or args.backend or "codex_app_server"
+    if effective_backend != "codex_app_server":
+        return
+
+    errors = []
+    if args.config is None:
+        errors.append("--config examples/.../workflow/*.yaml")
+    if not args.loop:
+        errors.append("--loop")
+    if not args.mcp_server_no_file_tools:
+        errors.append("--mcp-server-no-file-tools")
+    if args.mcp_server:
+        errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
+
+    if not errors:
+        return
+
+    info(
+        "Error: backend 'codex_app_server' is the official supervised Codex path, "
+        "but the CLI arguments would degrade supervision semantics.\n"
+        "Required ordinary-run shape:\n"
+        "  veriagent {WORKSPACE}/ {DUT} \\\n"
+        "    --config examples/.../workflow/*.yaml \\\n"
+        "    --mcp-server-no-file-tools -s -hm --tui --loop \\\n"
+        "    --backend=codex_app_server\n"
+        "Missing or invalid argument(s): " + ", ".join(errors)
+    )
     sys.exit(1)
 
 
@@ -1030,7 +1077,6 @@ def run() -> None:
 
     _require_workflow_config(args)
 
-    from veriagent.verify_agent import VerifyAgent
     from veriagent.util.log import init_log_logger, init_msg_logger
     from veriagent.util.functions import append_python_path, find_available_port
 
@@ -1083,6 +1129,15 @@ def run() -> None:
         args.override["mcp_server.host"] = args.mcp_server_host
 
     if args.backend:
+        if args.backend in LEGACY_BACKENDS:
+            print(
+                "Warning: backend "
+                f"'{args.backend}' is legacy in Agentic-Verification. "
+                "It does not provide the Codex SDK thread/turn/event contract, "
+                "so supervision and run_manifest details may be incomplete. "
+                "Use '--backend=codex_app_server' for the official path.",
+                file=sys.stderr,
+            )
         args.override["backend.key_name"] = args.backend
     if args.resume_codex_thread:
         args.override["backend.codex_app_server.args.resume_codex_thread"] = True
@@ -1094,6 +1149,8 @@ def run() -> None:
         args.override = args.override or {}
         args.override["skill.use_skill"] = args.use_skill
         args.override["skill.extra_skill_path"] = args.extra_skill_path or ""
+
+    _validate_official_codex_app_server_path(args)
 
     # Make sure mcp server is started before tui
     if args.tui:
@@ -1175,6 +1232,8 @@ def run() -> None:
             ex_tools.extend(get_list_from_str(tool_str))
 
     # Create and configure the agent
+    from veriagent.verify_agent import VerifyAgent
+
     agent = VerifyAgent(
         workspace=args.workspace,
         dut_name=args.dut,

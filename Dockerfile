@@ -4,6 +4,7 @@ FROM ghcr.io/xs-mlvp/picker:latest
 
 # The picker base image already provides Node.js, npm, Python 3.11, and pip.
 USER root
+ARG CODEX_APP_SERVER_PACKAGE=""
 RUN node --version && \
     npm --version && \
     python3 --version && \
@@ -27,6 +28,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install VeriAgent and dependencies into the image.
 RUN python3 -m pip install . && \
+    if [ -n "$CODEX_APP_SERVER_PACKAGE" ]; then \
+      echo "Installing Codex app-server SDK from CODEX_APP_SERVER_PACKAGE"; \
+      python3 -m pip install "$CODEX_APP_SERVER_PACKAGE"; \
+      python3 -c "import codex_app_server; print('ok: codex_app_server import')"; \
+    else \
+      echo "CODEX_APP_SERVER_PACKAGE is empty; skipping private Codex app-server SDK install"; \
+    fi && \
     python3 -m pip install -r requirements-formal.txt && \
     node --version && npm --version && python3 --version && veriagent --check
 

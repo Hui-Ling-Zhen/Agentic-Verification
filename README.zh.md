@@ -19,8 +19,9 @@ Workflow **外置**于 `examples/*/workflow/`，必须通过 **`--config`** 显�
 ## 环境要求
 
 - Python 3.11+，Linux / macOS，建议 4GB+ 内存
-- [Codex CLI](https://github.com/openai/codex)（`codex` 在 PATH 中）
-- Codex app-server Python SDK（`codex_app_server`）与 MCP Python 包（`mcp`），由 `requirements.txt` 安装
+- [Codex CLI](https://github.com/openai/codex) 可执行文件（`codex` 在 PATH 中）
+- MCP Python 包（`mcp`），由 `requirements.txt` 安装
+- Codex app-server Python SDK（可 import 为 `codex_app_server`）。该 SDK 目前不能通过公开 PyPI 的 `codex_app_server` 包名安装；使用 `--backend=codex_app_server` 前，请先从批准的包源或 direct URL 安装。
 - [picker](https://github.com/XS-MLVP/picker)
 - 模型端点（供 Codex 使用，OpenAI 兼容）：
 
@@ -38,6 +39,8 @@ export OPENAI_MODEL=...
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
 pip3 install -r requirements.txt   # 或：pip3 install -e .
+# 然后从批准的包源安装 Codex app-server SDK：
+# pip3 install "${CODEX_APP_SERVER_PACKAGE}"
 ```
 
 **首次运行（Adder 基线）：**
@@ -57,6 +60,15 @@ veriagent output/workspace_Adder/ Adder \
 无需另开终端手动启动 Qwen/Claude。**不要**使用旧 `codex` CLI、langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
 
 Codex SDK thread 默认受 DUT / workflow / workspace 输入 / backend 参数指纹保护；只有确认要跨指纹复用旧 thread 时才使用 `--resume-codex-thread`。
+
+Sandbox 说明：`.codex/config.toml` 中的 `veriagent_policy` 是审计提示，不是强制策略引擎。真正的强边界来自 Codex sandbox、`writable_roots` 和输入目录的 OS 只读权限。默认 `codex_network_access=enabled`；不需要联网的 case 建议显式关闭：
+
+```bash
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --override backend.codex_app_server.args.codex_network_access=disabled
+```
 
 ---
 

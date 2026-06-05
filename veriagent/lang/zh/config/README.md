@@ -86,4 +86,4 @@ stage:
 - **DUT 级**：复制为 `examples/<storyline>/<dut>/workflow/default.yaml`，Makefile 中设置 `CFG=` 或扩展 `WORKFLOW_CFG_<DUT>`
 - **临时试验**：`--emulate-config --config path/to/workflow.yaml`
 
-与 UCAgent 的差异：UCAgent 在包内 `ucagent/lang/zh/config/default.yaml` 自带完整 UT 流程；Agentic-Verification 将 workflow 外置到 example，runtime 只提供机制。
+与历史 UCAgent 项目的差异：UCAgent 在包内 `ucagent/lang/zh/config/default.yaml` 自带完整 UT 流程；Agentic-Verification 将 workflow 外置到 example，VeriAgent runtime 只提供机制。

@@ -73,7 +73,7 @@
 - 标注功能分组、功能点和检查点
 - 输出:`{OUT}/unity_test/{DUT}_functions_and_checks.md`
 
-**Checker**: `UnityChipCheckerLabelStructure` - 验证功能标签的结构和命名规范
+**Checker**: VeriAgent 标签结构 Checker（兼容类名 `UnityChipCheckerLabelStructure`）- 验证功能标签的结构和命名规范
 
 #### 6. ref_function_line_map_generation (功能行映射生成，参考检查点新检查点差异分析)
 

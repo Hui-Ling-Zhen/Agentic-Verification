@@ -4,9 +4,10 @@
 
 ## 概述
 
-**VeriAgent** 是一个基于大语言模型的通用智能体。目前默认的工作流专注于芯片设计的单元测试(Unit Test)自动化验证。该工作流通过 AI ，自动分析硬件设计/验证文档、生成测试用例、执行验证任务并生成测试报告，从而提高验证效率。
+**VeriAgent** 是 Agentic-Verification 的外层验证 runtime：它负责 workflow stage、Checker、MCP 验证工具、人工检查点和运行结果记录；官方路径使用 **Codex SDK backend** 作为内层执行 agent，完成每轮 RTL 阅读、测试编写和文件修改。
 
-- 快速开始使用自动化硬件验证，请直接阅读**[快速入门](./01_start/02_quickstart.md):** 即刻开始使用 VeriAgent。
+- 推荐先读仓库根目录 `README.md` 与 `examples/_shared/supervised-codex.md`，了解“VeriAgent runtime 监督 Codex runtime”的两层模型。
+- 快速开始使用自动化硬件验证，请直接阅读**[快速入门](./01_start/02_quickstart.md):** 使用 `make example-baseline` 或 `--backend=codex_app_server --loop --config examples/.../workflow/...` 启动。
 - 自定义其他的工作流,请直接阅读**[定制开发入门](./03_develop/01_quick_start.md):** 快速创建自定义工作流。
 
 ## 文档导航
@@ -21,7 +22,8 @@
 
 ### 功能介绍
 
-- **[MCP 集成](./02_usage/00_mcp.md):** 使用 Code Agent 与 VeriAgent 共同工作
+- **[Legacy 被动 MCP](./02_usage/00_mcp.md):** 旧外部 Code Agent MCP 模式，非官方主路径
+- **[Legacy Qwen MCP](./02_usage/legacy_qwen_mcp.md):** 旧 Qwen 双终端流程
 - **[直接使用](./02_usage/01_direct.md):** 使用 API 直接使用 VeriAgent
 - **[人机协同](./02_usage/02_assit.md):** 在 VeriAgent 验证过程中进行人机协同
 - **[参数说明](./02_usage/03_option.md):** 命令行的各个参数说明

@@ -25,6 +25,14 @@ Example fields:
 | `codex_file_changes` | File paths changed in the last turn |
 | `codex_failure_reason` | Reason for non-completed turns |
 | `codex_event_log` | Path to `.veriagent/codex_events.jsonl` |
+| `codex_config_file` | Rendered `.codex/config.toml` used by the SDK backend |
+| `sandbox_mode` | Codex sandbox mode written to config |
+| `network_access` | Codex network access setting |
+| `writable_roots` | Writable roots from the rendered sandbox policy |
+| `protected_inputs` | Input directories VeriAgent expects to keep read-only |
+| `policy_enforcement` | Current enforcement model, usually `codex_sandbox_os_permissions` |
+| `veriagent_policy` | `audit_hint_only`; not a Codex-enforced policy engine |
+| `policy_warnings` | Read-only/protection warnings observed at startup |
 | `all_completed` | All stages finished |
 | `stage_index` | Current stage index |
 | `stages_total` / `stages_passed` / `stages_skipped` | Stage counts |
@@ -32,7 +40,7 @@ Example fields:
 | `version` | `veriagent` version |
 | `started_at` / `updated_at` | UTC timestamps |
 
-Schema version: `schema_version: "2"` (see `veriagent/util/benchmark.py`).
+Schema version: `schema_version: "3"` (see `veriagent/util/benchmark.py`).
 
 ## Per-event: `codex_events.jsonl`
 

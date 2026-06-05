@@ -10,8 +10,12 @@ backend:
   key_name: "codex_app_server"  # Agentic-Verification standard: supervised Codex SDK (MCP + loop + thread/turn events)
   langchain:
     clss: veriagent.abackend.langchain.VeriAgentLangChainBackend
+    legacy: true
+    status: legacy
   claude:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "claude {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} --dangerously-skip-permissions -p < {MSG_FILE}"
       cli_cmd_ctx: "claude {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} --dangerously-skip-permissions -c -p < {MSG_FILE}"
@@ -21,6 +25,8 @@ backend:
 
   opencode:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "opencode run {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} < {MSG_FILE}"
       cli_cmd_ctx: "opencode run {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} -c < {MSG_FILE}"
@@ -30,6 +36,8 @@ backend:
 
   copilot:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "copilot {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} --allow-all-tools < {MSG_FILE}"
       cli_cmd_ctx: "copilot {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} --allow-all-tools --continue < {MSG_FILE}"
@@ -41,6 +49,8 @@ backend:
 
   qwen:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "qwen {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} -y -p < {MSG_FILE}"
       cli_cmd_ctx: "qwen {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} -y -c -p < {MSG_FILE}"
@@ -52,6 +62,8 @@ backend:
 
   iflow:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "iflow {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} -y < {MSG_FILE}"
       cli_cmd_ctx: "iflow {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} -y < {MSG_FILE}"
@@ -63,6 +75,8 @@ backend:
 
   kilo:
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "kilo run {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} < {MSG_FILE}"
       cli_cmd_ctx: "kilo run {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} -c < {MSG_FILE}"
@@ -74,6 +88,8 @@ backend:
 
   codex:  # Legacy fallback: opaque codex exec CLI backend
     clss: veriagent.abackend.VeriAgentCmdLineBackend
+    legacy: true
+    status: legacy
     args:
       cli_cmd_new: "codex exec {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_N} --yolo < {MSG_FILE}"
       cli_cmd_ctx: "codex exec {UC_ENV_CMD_BACKEND_EX_ARGS} {UC_ENV_CMD_BACKEND_EX_ARGS_C} resume --last --yolo < {MSG_FILE}"
@@ -88,6 +104,8 @@ backend:
 
   codex_app_server:
     clss: veriagent.abackend.codex_sdk.CodexAppServerBackend
+    legacy: false
+    status: official
     args:
       model: "{{OPENAI_MODEL|default(\"gpt-5.5\")}}"
       model_provider: "veriagent"

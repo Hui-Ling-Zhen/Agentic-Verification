@@ -477,7 +477,7 @@ val operand_b = MuxCase(rf.read_data2, Seq(
 
 ### 批次分析进度标记 `<file>`
 
-`static_bug_analysis` 阶段采用**批次推进**方式：`UnityChipBatchCheckerStaticBug` Checker 每次从待分析文件列表中取出若干个文件（由 `batch_size` 控制，默认为 1），由 LLM 对其进行静态审查并将结果写入 `{DUT}_static_bug_analysis.md`。
+`static_bug_analysis` 阶段采用**批次推进**方式：VeriAgent 的静态 Bug 批处理 Checker（兼容类名 `UnityChipBatchCheckerStaticBug`）每次从待分析文件列表中取出若干个文件（由 `batch_size` 控制，默认为 1），由 LLM 对其进行静态审查并将结果写入 `{DUT}_static_bug_analysis.md`。
 
 每完成一批次的分析后，LLM 需要在 `{DUT}_static_bug_analysis.md` **末尾**维护一个 **`## 批次分析进度`** 进度表格，记录每个已分析文件及其发现的疑似Bug数量。
 
@@ -508,11 +508,11 @@ val operand_b = MuxCase(rf.read_data2, Seq(
 
 **Checker 的状态推导机制（无状态）：**
 
-`UnityChipBatchCheckerStaticBug` 是**无状态**的，每次检查时通过正则解析文档中所有 `<file>…</file>` 标记来确定已完成的文件列表：
+该批处理 Checker 是**无状态**的，每次检查时通过正则解析文档中所有 `<file>…</file>` 标记来确定已完成的文件列表：
 
 - 若某文件的路径出现在任意 `<file>` 标记中（无论其位于纯文本还是表格行内），则认为该文件已完成分析；
 - 否则该文件将被纳入下一批次；
-- 当所有文件均有对应标记后，Checker 自动调用 `UnityChipCheckerStaticBugFormat` 执行完整格式校验；
+- 当所有文件均有对应标记后，Checker 自动调用静态 Bug 格式 Checker（兼容类名 `UnityChipCheckerStaticBugFormat`）执行完整格式校验；
 - `<file>` 标记（进度追踪）与 `<FILE-*>` 源文件位置标签（Bug 层级中的结构化标签）**功能不同，勿混淆**。
 
 > **注意**：`## 批次分析进度` 章节是追加在文档正文之后的**进度元数据**，不属于标签层级结构，`parse_nested_keys` 不会解析它；`<file>` 标签内容中的斜杠、冒号等字符不影响主体文档的标签解析。
