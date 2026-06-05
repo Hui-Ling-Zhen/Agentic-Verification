@@ -18,7 +18,7 @@
 
 该模式只建议用于：
 
-- 兼容旧 Qwen / Gemini / Copilot / Claude Code MCP 客户端。
+- 兼容旧外部 Code Agent MCP 客户端。
 - 调试 VeriAgent MCP 工具本身。
 - 对比不同 Code Agent 的工具调用行为。
 
@@ -39,6 +39,6 @@ veriagent output/workspace_Adder/ Adder \
   --backend=codex_app_server
 ```
 
-## 旧 Qwen MCP 文档
+## 旧外部 MCP 文档
 
-旧 Qwen 双终端流程已移到 [Legacy Qwen MCP](legacy_qwen_mcp.md)。该页面仅用于兼容和排障，不作为新用户 onboarding 路径。
+旧外部 Code Agent 双终端流程已移到 [Legacy 外部 MCP](legacy_qwen_mcp.md)。该页面仅用于兼容和排障，不作为新用户 onboarding 路径。

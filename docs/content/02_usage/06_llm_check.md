@@ -36,7 +36,7 @@ LLM Check & Refinement 功能通过 `veriagent/setting.yaml` 中的 `vmanager.ll
 1. **YAML 配置文件**：在 `setting.yaml` 或项目特定配置文件中配置
 2. **环境变量**：通过环境变量快速启用和配置
 
-**前置要求**：该功能需要使用 API 模式的 LLM 后端（如 Claude Code、Qwen Code 等代码智能体），不支持纯本地模型。
+**前置要求**：该功能需要可访问的 OpenAI-compatible 专家模型端点，用于二次评估 Checker 结果。它与主验证 backend 解耦；官方主路径仍是 `codex_app_server`。
 
 ### 2.2 Fail Refinement 配置
 

@@ -14,11 +14,11 @@
 
 - 面向芯片设计单元测试(Unit Test)的 AI Agent，基于 LLM 驱动，围绕“阶段化工作流 + 工具编排”自动/半自动完成需求理解、测试生成、执行与报告产出。
 - 以用户为主导，LLM 为助理的协作式交互 Agent
-- 以 Picker & Toffee 为基础，DUT 以 Python 包形式被测试；可与 OpenHands/Copilot/Claude Code/Gemini-CLI/Qwen Code/ 等通过 MCP 协议深度协作。
+- 以 Picker & Toffee 为基础，DUT 以 Python 包形式被测试；官方路径通过 Codex app-server SDK 运行内层 Codex，并通过 MCP 调用 VeriAgent 的验证域工具。
 
 ### 能力与目标
 
 - 自动/半自动：生成/完善测试代码与文档、运行用例、汇总报告
 - 完整：功能覆盖率、代码行覆盖率与文档一致性
-- 可集成：兼容OpenAI/Anthropic/Google 接口；提供 MCP server 接口便于外部 Code Agent 接入
+- 可集成：兼容 OpenAI-compatible 模型端点；提供 MCP server 给 Codex SDK 内层 runtime 调用。外部 Code Agent 的被动 MCP 接入仅作为 legacy 兼容模式保留。
 - 目标：有效减少用户在验证过程中的重复工作

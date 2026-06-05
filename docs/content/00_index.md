@@ -23,7 +23,7 @@
 ### 功能介绍
 
 - **[Legacy 被动 MCP](./02_usage/00_mcp.md):** 旧外部 Code Agent MCP 模式，非官方主路径
-- **[Legacy Qwen MCP](./02_usage/legacy_qwen_mcp.md):** 旧 Qwen 双终端流程
+- **[Legacy 外部 MCP](./02_usage/legacy_qwen_mcp.md):** 旧外部 Code Agent 双终端流程
 - **[直接使用](./02_usage/01_direct.md):** 使用 API 直接使用 VeriAgent
 - **[人机协同](./02_usage/02_assit.md):** 在 VeriAgent 验证过程中进行人机协同
 - **[参数说明](./02_usage/03_option.md):** 命令行的各个参数说明

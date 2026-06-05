@@ -67,7 +67,7 @@ make formal_mcp_<DUT>   # Formal，含 --use-skill
 make benchmark          # 汇总各 workspace 的 run_manifest.json
 ```
 
-无需再开第二个终端手动启动 Qwen/Codex。
+无需再开第二个终端手动启动外部 Code Agent。
 
 ## 官方路径 vs Legacy backend
 

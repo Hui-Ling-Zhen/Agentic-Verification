@@ -113,7 +113,7 @@ make benchmark
 
 ## Legacy 入口
 
-旧 Qwen 双终端 / 被动 MCP / legacy CLI backend 不再作为主路径。需要兼容旧流程时，请阅读：
+旧外部 Code Agent 双终端 / 被动 MCP / legacy CLI backend 不再作为主路径。需要兼容旧流程时，请阅读：
 
 - [Legacy 被动 MCP](00_mcp.md)
-- [Legacy Qwen MCP](legacy_qwen_mcp.md)
+- [Legacy 外部 MCP](legacy_qwen_mcp.md)

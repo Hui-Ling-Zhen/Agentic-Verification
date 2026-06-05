@@ -43,7 +43,7 @@ veriagent output/workspace_Adder/ Adder \
 4. 新终端：`make diff` — 应用 `Adder_new.v`
 5. VeriAgent 终端：`protect_files_on`
 6. 人工审核：`hmcheck_pass Adder的bug已修复且增加了有符号加功能，请完成修改部分的验证`
-7. Code Agent：`增量任务已给出，请Complete该阶段，从下一个阶段获取具体任务并进行完成`
+7. 在 VeriAgent TUI / 监督循环中继续：`增量任务已给出，请 Complete 该阶段，从下一个阶段获取具体任务并完成`
 
 ## 验证关注点
 

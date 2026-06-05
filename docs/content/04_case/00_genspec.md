@@ -3,7 +3,7 @@
 ## 工作流介绍
 
 规范生成是 VeriAgent 自定义工作流的一个案例,专门用于从分散的设计资料(如源码、文档、注释等)中提取、整理和生成结构化的功能规范文档。
-通过修改`config.yaml`中的流程定义，达到了一个规范生成的效果。
+该流程通过外置 workflow `examples/06-planning/workflow/genspec.yaml` 定义，并由监督式 Codex SDK 路径执行。
 
 如果有其他的自定义工作流的需求，可以参考[定制工作流（增删阶段/子阶段）](../03_develop/03_workflow.md#定制工作流增删阶段子阶段)来自定义阶段从而满足实际的需要。
 
@@ -197,38 +197,21 @@ output/
 
 ```
 
-### 与 MCP Client 协作
-
-GenSpec 支持通过 MCP 协议与外部 Code Agent 协作:
-
-1. **配置 MCP Client** (以 Qwen Code 为例)
-
-```json
-{
-	"mcpServers": {
-		"genspec": {
-			"httpUrl": "http://localhost:5000/mcp",
-			"timeout": 10000
-		}
-	}
-}
-```
-
-2. **启动 MCP Server**
+### 监督式 Codex SDK 启动
 
 ```bash
-veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+veriagent output/ Adder \
+  --config examples/06-planning/workflow/genspec.yaml \
+  --mcp-server-no-file-tools \
+  -s -hm --tui --loop \
+  --backend=codex_app_server \
+  --no-embed-tools \
+  --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
 ```
 
-3. **在 MCP Client 中启动协作**
+该命令会由 VeriAgent 启动 MCP、TUI 和监督循环，并由 Codex SDK 内层 runtime 调用验证域工具。旧的外部 MCP Client / 双终端方式仅作为 legacy 兼容模式保留。
 
-在`output`文件夹启动code agent，然后输入提示词：
-
-```
-> 请通过工具 RoleInfo 获取你的角色信息和基本指导,然后完成任务。使用工具 ReadTextFile 读取文件。你需要在当前工作目录进行文件操作,不要超出该目录。
-```
-
-4. **流程监控**
+### 流程监控
 
 在 VeriAgent TUI 界面中可以实时查看:
 
@@ -312,7 +295,7 @@ SKIP_HUMAN_CHECK=true make spec_Adder
 
 **A**:
 
-都是在 VeriAgent 这个大框架下的工作流。只是一个用于文档生成，一个用于验证生成。可以通过修改`config.yaml`自行转换或者同时使用。
+都是在 VeriAgent 这个大框架下的外置 workflow。只是一个用于文档生成，一个用于验证生成。可以复制并修改 `examples/06-planning/workflow/genspec.yaml` 或其它 `examples/*/workflow/*.yaml` 来转换或组合流程。
 
 | 特性     | 规范生成           | 验证生成                     |
 | -------- | ------------------ | ---------------------------- |

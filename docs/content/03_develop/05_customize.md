@@ -62,7 +62,7 @@ class HelloTool(UCTool):
 注册与使用：
 
 - 临时：`--ex-tools mypkg.mytools.HelloTool`
-- 持久：项目 `config.yaml`
+- 持久：写入外置 workflow YAML 或用户级 `~/.veriagent/setting.yaml`
 
 ```yaml
 ex_tools:
@@ -127,7 +127,7 @@ print(client.list_tools())
 print(client.call_tool("Hello", {"who": "VeriAgent"}))
 ```
 
-IDE/Agent（Claude Code、Copilot、Qwen Code 等）：将 `httpUrl` 指向 `http://<host>:<port>/mcp`，即可发现并调用工具。
+官方监督式 Codex SDK 路径下，内层 Codex 会读取 `.codex/config.toml` 中的 MCP server 配置并调用工具。其它外部 IDE/Agent 连接 MCP 属于 legacy 被动 MCP 调试方式，不作为新验证任务主路径。
 
 ### 5) 生命周期、并发与超时
 
@@ -137,7 +137,7 @@ IDE/Agent（Claude Code、Copilot、Qwen Code 等）：将 `httpUrl` 指向 `htt
 
 ### 6) 配置策略与最佳实践
 
-- ex_tools 列表为“整体覆盖”，项目 `config.yaml` 需写出完整清单。
+- ex_tools 列表为“整体覆盖”，外置 workflow 或用户级配置需写出完整清单。
 - 短名 vs 全路径：短名更便捷，全路径适用于私有包不修改本仓库时。
 - 无参构造/工厂：装配器直接调用 `(...)()`，复杂配置建议在工厂内部处理（读取环境/配置文件）。
 - 文件写权限：MCP 无文件工具模式下不要暴露写类工具；如需写入，请在本地 Agent 内使用或显式允许写目录。
@@ -146,7 +146,7 @@ IDE/Agent（Claude Code、Copilot、Qwen Code 等）：将 `httpUrl` 指向 `htt
 
 配置文件支持 Bash 风格环境变量占位：`$(VAR: default)`。你可以让 `ex_tools` 从环境变量注入工具类列表（支持模块全名或 `veriagent.tools` 下的短名）。
 
-1. 在项目的 `config.yaml` 或用户级 `~/.veriagent/setting.yaml` 中写入：
+1. 在外置 workflow YAML 或用户级 `~/.veriagent/setting.yaml` 中写入：
 
 ```yaml
 ex_tools: $(EX_TOOLS: [])

@@ -6,7 +6,7 @@ Agentic-Verification 的官方运行方式是 **VeriAgent runtime 监督 Codex S
 veriagent + --config examples/.../workflow/*.yaml + --backend=codex_app_server + --loop
 ```
 
-旧的 Qwen 双终端 / 被动 MCP 模式仍可兼容，但不再是推荐路径；需要时请参考 [Legacy Qwen MCP](../02_usage/legacy_qwen_mcp.md)。
+旧的外部 Code Agent 双终端 / 被动 MCP 模式仍可兼容，但不再是推荐路径；需要时请参考 [Legacy 外部 MCP](../02_usage/legacy_qwen_mcp.md)。
 
 ## 前置条件
 
@@ -30,9 +30,12 @@ export OPENAI_MODEL=...
 ```bash
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
-pip3 install -r requirements.txt
+pip3 install -e .
 # 然后从批准的包源安装 Codex app-server SDK：
 # pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+python -c "import codex_app_server; print('ok: codex_app_server')"
+codex --version
+picker --version
 ```
 
 也可以使用 pip 安装：

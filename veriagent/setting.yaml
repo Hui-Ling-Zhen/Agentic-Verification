@@ -107,7 +107,7 @@ backend:
     legacy: false
     status: official
     args:
-      model: "{{OPENAI_MODEL|default(\"gpt-5.5\")}}"
+      model: "$(OPENAI_MODEL: gpt-5.5)"
       model_provider: "veriagent"
       approval_policy: "never"
       sandbox: "workspace-write"

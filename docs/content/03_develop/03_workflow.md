@@ -342,7 +342,10 @@ export SKIP_MOCK_COMPONENT=false
 启动时使用 `--unskip` 参数指定阶段索引：
 
 ```bash
-veriagent verify --unskip 13 --unskip 15 --unskip 18  # 取消跳过阶段 13、15、18
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --unskip 13 --unskip 15 --unskip 18
 ```
 
 #### 方法三：TUI 命令
@@ -412,7 +415,9 @@ export SKIP_ENV_HUMAN_CHECK=false
 export SKIP_MOCK_COMPONENT=false
 
 # 2. 启动 VeriAgent
-veriagent verify PTW
+veriagent output/workspace_PTW/ PTW \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 
 # 3. 在 TUI 中设置强制人工检查
 hmcheck_set 5 true    # 3.3 检测点设计与定义

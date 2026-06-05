@@ -68,7 +68,9 @@ veriagent ./output/ Calculator \
   --mcp-server-no-file-tools \
   --config ./mini.yaml \
   --guid-doc-path ./Guide_Doc/ \
-  -s -hm --tui --no-embed-tools
+  -s -hm --tui --loop \
+  --backend=codex_app_server \
+  --no-embed-tools
 ```
 
 **参数说明**：
@@ -81,22 +83,13 @@ veriagent ./output/ Calculator \
 - `-s`：单步模式，每个阶段执行后暂停
 - `-hm`：启用人工检查模式
 - `--tui`：使用文本用户界面
+- `--loop`：启动 VeriAgent 监督循环
+- `--backend=codex_app_server`：使用官方 Codex SDK backend
 - `--no-embed-tools`：不嵌入工具到提示词
 
-### 4. 启动Code Agent
+### 4. 在 TUI 中观察监督循环
 
-另开一个终端启动Code Agent
-
-```bash
-# 切换到目录
-cd examples/MiniWorkflow/outpute
-# 启动Code Agent（以gemini为例）
-gemini -y
-```
-
-启动后在输入框输入提示词
-
-> 请通过工具`RoleInfo`获取你的角色信息和基本指导，然后完成任务。请使用工具`ReadTextFile`读取文件。你需要在当前工作目录进行文件操作，不要超出该目录。
+官方路径不需要另开外部 Code Agent 终端。VeriAgent 会通过 `codex_app_server` 启动内层 Codex turn，Codex 通过 MCP 调用 `Check`、`Complete` 等验证域工具。你可以在 TUI 中观察阶段推进、日志和人工检查点。
 
 ### 5. 查看输出
 

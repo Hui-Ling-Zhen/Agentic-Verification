@@ -25,7 +25,11 @@ Makefile 与 Web Master 会指向上述路径；也可手动：
 
 ```bash
 veriagent output/workspace_Adder/ Adder \
-  --config examples/01-baseline/workflow/default.yaml --loop
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools \
+  -s -hm --tui \
+  --loop \
+  --backend=codex_app_server
 ```
 
 ## 配置加载顺序
@@ -35,7 +39,7 @@ veriagent output/workspace_Adder/ Adder \
 3. `lang/zh/config/empty.yaml` — 空 workflow scaffold
 4. `{workspace}/.veriagent/setting.yaml` — workspace 级（若有）
 5. `--config <workflow.yaml>` — **example 工作流（mission + stage + checker）**
-6. `--cfg-override` — 临时覆盖
+6. `--override` — 临时覆盖
 
 ## Workflow YAML Schema（摘要）
 

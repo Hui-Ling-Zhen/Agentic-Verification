@@ -38,9 +38,12 @@ export OPENAI_MODEL=...
 ```bash
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
-pip3 install -r requirements.txt   # 或：pip3 install -e .
+pip3 install -e .
 # 然后从批准的包源安装 Codex app-server SDK：
 # pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+python -c "import codex_app_server; print('ok: codex_app_server')"
+codex --version
+picker --version
 ```
 
 **首次运行（Adder 基线）：**
@@ -57,7 +60,7 @@ veriagent output/workspace_Adder/ Adder \
   --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
 ```
 
-无需另开终端手动启动 Qwen/Claude。**不要**使用旧 `codex` CLI、langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
+无需另开终端手动启动外部 Code Agent。**不要**使用旧 `codex` CLI、langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
 
 Codex SDK thread 默认受 DUT / workflow / workspace 输入 / backend 参数指纹保护；只有确认要跨指纹复用旧 thread 时才使用 `--resume-codex-thread`。
 

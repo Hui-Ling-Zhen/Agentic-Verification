@@ -45,13 +45,19 @@ veriagent --as-master-persist --as-master --as-master-password "your_password"
 ### 2.2 连接 Agent 到 Master
 
 ```bash
-veriagent ./output Adder --master 127.0.0.1:8800 your_key
+veriagent output/workspace_Adder/ Adder \
+  --config examples/01-baseline/workflow/default.yaml \
+  --mcp-server-no-file-tools \
+  -s -hm --tui \
+  --loop \
+  --backend=codex_app_server \
+  --master 127.0.0.1:8800 your_key
 ```
 
 示例：
 
 ```bash
-veriagent ./output Adder --master 127.0.0.1:8800
+make mcp_Adder ARGS="--master 127.0.0.1:8800"
 ```
 
 ---

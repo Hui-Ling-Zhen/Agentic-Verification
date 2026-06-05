@@ -1,0 +1,99 @@
+import sys
+from types import ModuleType
+
+
+class FakeBackend:
+    def __init__(self):
+        self.inited = False
+        self.debug = None
+
+    def get_message_manage_node(self):
+        return None
+
+    def init(self):
+        self.inited = True
+
+    def set_debug(self, debug):
+        self.debug = debug
+
+    def interrupt(self):
+        return False
+
+    def close(self):
+        return None
+
+    def last_turn_summary(self):
+        return {}
+
+    def policy_summary(self):
+        return {}
+
+
+def test_verify_agent_can_be_instantiated_with_external_workflow(monkeypatch, tmp_path):
+    langfuse = ModuleType("langfuse")
+    langfuse.Langfuse = object
+    langfuse_langchain = ModuleType("langfuse.langchain")
+    langfuse_langchain.CallbackHandler = object
+    monkeypatch.setitem(sys.modules, "langfuse", langfuse)
+    monkeypatch.setitem(sys.modules, "langfuse.langchain", langfuse_langchain)
+
+    from veriagent import verify_agent, verify_pdb
+    from veriagent.stage import vstage
+
+    workspace = tmp_path / "workspace"
+    dut = workspace / "Adder"
+    rtl = workspace / "Adder_RTL"
+    dut.mkdir(parents=True)
+    rtl.mkdir()
+    (dut / "README.md").write_text("# Adder\n", encoding="utf-8")
+    (dut / "__init__.py").write_text("", encoding="utf-8")
+    (rtl / "Adder.v").write_text("module Adder; endmodule\n", encoding="utf-8")
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+
+    fake_backend = FakeBackend()
+    monkeypatch.setattr(verify_agent, "get_backend", lambda agent, cfg: fake_backend)
+    monkeypatch.setattr(verify_agent, "uuid4", lambda: "test-session")
+    monkeypatch.setattr(verify_pdb, "set_console_sync_handler", lambda handler: None)
+    monkeypatch.setattr(verify_pdb.VerifyPDB, "_install_persistent_console_mirror", lambda self: None)
+    monkeypatch.setattr(vstage.diff_ops, "is_git_repo", lambda path: True)
+    workflow = tmp_path / "workflow.yaml"
+    workflow.write_text(
+        """
+mission:
+  name: "Smoke {DUT}"
+  prompt:
+    system: "Smoke test workflow."
+stage:
+  - name: smoke_stage
+    desc: "Smoke stage"
+    task:
+      - "Validate VerifyAgent construction."
+    checker:
+      - name: smoke_check
+        clss: "NopChecker"
+        args: {}
+""",
+        encoding="utf-8",
+    )
+
+    agent = verify_agent.VerifyAgent(
+        workspace=str(workspace),
+        dut_name="Adder",
+        output="unity_test",
+        config_file=str(workflow),
+        cfg_override={
+            "skill.use_skill": False,
+            "langfuse.enable": False,
+        },
+        no_embed_tools=True,
+        no_history=True,
+        init_cmd=[],
+    )
+
+    assert agent.dut_name == "Adder"
+    assert agent.config_file == str(workflow)
+    assert agent.cfg.backend.key_name == "codex_app_server"
+    assert agent.stage_manager is not None
+    assert fake_backend.inited is True
+    assert "Adder" in agent.cfg.un_write_dirs
+    assert "Adder_RTL" in agent.cfg.un_write_dirs

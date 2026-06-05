@@ -37,10 +37,11 @@ AI 执行 → 阶段检查 → 人工审核/修复 → 标记完成 → 进入�
 
 #### 暂停 AI 执行
 
-根据不同的使用模式选择暂停方式：
+官方监督式 Codex SDK 路径下，推荐通过 TUI / VeriAgent 控制台进行暂停和人工介入：
 
-- **直接接入 LLM 模式**：按 `Ctrl+C` 暂停
-- **Code Agent 协同模式**：根据 Agent 的暂停方式（如 Gemini-cli 使用 `Esc`）暂停
+- 按 `Ctrl+C` 让 VeriAgent 进入 break / 交互状态
+- 使用 TUI 中的阶段控制、`Check`、`Complete` 和 `loop` 命令继续推进
+- 旧外部 Code Agent 暂停方式属于 legacy 被动 MCP 模式，不作为新任务主路径
 
 #### 查看当前状态
 
@@ -112,7 +113,7 @@ loop
 # 带提示信息继续执行
 loop "I have fixed the test cases, please continue"
 
-# 在 Code Agent 模式下，通过 Agent 的控制台输入提示
+# 旧外部 Code Agent 模式属于 legacy，被监督式 Codex SDK 路径替代
 ```
 
 ## 强制人工审核模式

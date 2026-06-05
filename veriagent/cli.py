@@ -332,6 +332,8 @@ def _validate_official_codex_app_server_path(args) -> None:
         errors.append("--mcp-server-no-file-tools")
     if args.mcp_server:
         errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
+    if not (args.human or args.tui):
+        errors.append("-hm/--human or --tui")
 
     if not errors:
         return

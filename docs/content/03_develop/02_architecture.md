@@ -136,29 +136,32 @@ flowchart TB
 3. 对 task/agent 提供 web-console 代理路径
 4. 支持 WebSocket 转发与重连增强
 
-## 配置文件体系
+## 配置与 Workflow 体系
 
-VeriAgent 采用**三层配置体系**，支持灵活的配置管理：
+VeriAgent 采用**运行配置 + 外置 workflow** 的体系。运行配置决定 backend、工具默认值和全局开关；workflow YAML 决定每个 case 的阶段、任务、Checker 和 skills。普通验证运行必须通过 `--config examples/*/workflow/*.yaml` 显式传入 workflow。
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │  1. 系统默认配置 (veriagent/setting.yaml)              │
-│     - 提供所有配置项的默认值                           │
-│     - 定义内置工具和检查器                             │
+│     - 默认 backend、MCP、Launch、工具开关               │
+│     - 官方 backend 为 codex_app_server                  │
 ├──────────────────────────────────────────────────────┤
 │  2. 用户配置 (~/.veriagent/setting.yaml)               │
 │     - 用户全局配置，对所有项目生效                     │
-│     - 配置 Backend、API Key 等个人信息                │
+│     - 可覆盖 backend 参数、模型端点等                   │
 ├──────────────────────────────────────────────────────┤
-│  3. 项目配置 (项目根目录的 config.yaml)                │
-│     - 项目特定的配置，优先级最高                       │
-│     - 定义工作流、自定义工具、模板变量等               │
+│  3. 外置 workflow (examples/*/workflow/*.yaml)          │
+│     - 每个 case 的 stage/task/checker/skills 定义       │
+│     - 必须通过 --config 显式传入                        │
+├──────────────────────────────────────────────────────┤
+│  4. 命令行覆盖 (--override / CLI flags)                │
+│     - 临时覆盖配置键值，如网络访问或 stage 控制         │
 └──────────────────────────────────────────────────────┘
 ```
 
-**配置优先级**：项目配置 > 用户配置 > 系统默认配置
+**优先级**：命令行覆盖 > 外置 workflow > 用户配置 > 系统默认配置
 
-**示例**：如果三层配置都定义了 `backend.key_name`，最终使用项目配置中的值。
+**示例**：如果命令行传入 `--backend=codex_app_server`，最终使用该 backend；如果 workflow 定义了 `stage`，则普通运行按该外置 workflow 推进。根目录 `config.yaml` 不再作为官方 workflow 入口。
 
 ## 工作流程详解
 

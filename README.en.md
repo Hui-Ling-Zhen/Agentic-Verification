@@ -38,9 +38,12 @@ export OPENAI_MODEL=...
 ```bash
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
-pip3 install -r requirements.txt
+pip3 install -e .
 # Then install the Codex app-server SDK from your approved package source:
 # pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+python -c "import codex_app_server; print('ok: codex_app_server')"
+codex --version
+picker --version
 make example-baseline
 ```
 

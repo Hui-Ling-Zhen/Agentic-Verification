@@ -123,6 +123,6 @@ benchmark/runs.json
 
 该工具已移除。请使用 `EditTextFile`（overwrite / append / replace）或其它文件工具。官方 Codex SDK 路径下，通用文件操作主要由 Codex 本地 runtime 执行，MCP 侧只保留验证域工具。
 
-## 旧 Qwen 双终端流程还支持吗？
+## 旧外部 Code Agent 双终端流程还支持吗？
 
-作为 legacy 兼容保留，但不再作为推荐路径。请参考 [Legacy Qwen MCP](legacy_qwen_mcp.md)。
+作为 legacy 兼容保留，但不再作为推荐路径。请参考 [Legacy 外部 MCP](legacy_qwen_mcp.md)。

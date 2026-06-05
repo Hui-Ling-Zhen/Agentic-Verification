@@ -64,7 +64,7 @@ nav:
       - LLM Check & Refinement: content/02_usage/06_llm_check.md
       - Skills: content/02_usage/08_skill.md
       - Legacy 被动 MCP: content/02_usage/00_mcp.md
-      - Legacy Qwen MCP: content/02_usage/legacy_qwen_mcp.md
+      - Legacy 外部 MCP: content/02_usage/legacy_qwen_mcp.md
   - 定制开发:
       - 概览: content/03_develop/00_index.md
       - 定制开发入门: content/03_develop/01_quick_start.md

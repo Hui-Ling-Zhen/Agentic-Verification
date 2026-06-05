@@ -16,6 +16,7 @@ from .util.functions import yam_str, make_llm_tool_ret
 from .util.functions import (
     rm_workspace_prefix,
 )
+import veriagent.util.functions as fc
 from .util.test_tools import veriagent_lib_path
 
 import veriagent.tools

@@ -1,26 +1,20 @@
-# Legacy Qwen MCP
+# Legacy 外部 MCP
 
 !!! warning "历史兼容模式"
-    本页保留旧 Qwen Code + 被动 MCP 的使用方式，便于兼容旧流程和排障。新任务请优先使用监督式 Codex SDK：`--backend=codex_app_server --loop --config examples/.../workflow/*.yaml`。
+    本页保留旧外部 Code Agent + 被动 MCP 的通用说明，便于兼容旧流程和排障。新任务请优先使用监督式 Codex SDK：`--backend=codex_app_server --mcp-server-no-file-tools --loop --config examples/.../workflow/*.yaml`。
 
 ## 模式说明
 
-旧 Qwen MCP 模式需要两个进程：
+旧外部 MCP 模式需要两个进程：
 
 1. VeriAgent 启动 MCP server 和 TUI。
-2. Qwen Code 在另一个终端作为 MCP client 连接 VeriAgent。
+2. 外部 MCP client 在另一个终端连接 VeriAgent。
 
-该模式可以调用 VeriAgent 的 MCP 工具，但外层 runtime 无法可靠获得 Qwen 的 turn/event 信息，因此不具备官方 Codex SDK 路径的完整监督能力。
+该模式可以调用 VeriAgent 的 MCP 工具，但外层 runtime 无法可靠获得外部 client 的 turn/event 信息，因此不具备官方 Codex SDK 路径的完整监督能力，也不会提供同等质量的 `run_manifest.json` / `codex_events.jsonl`。
 
-## 准备工作
+## 通用 MCP Client 配置
 
-安装 Qwen Code CLI：
-
-```bash
-npm install -g @qwen-code/qwen-code
-```
-
-配置 `~/.qwen/settings.json`：
+不同外部 client 的配置文件位置不同。核心是把 MCP URL 指向 VeriAgent：
 
 ```json
 {
@@ -33,6 +27,8 @@ npm install -g @qwen-code/qwen-code
 }
 ```
 
+外部 client 的安装和登录不属于 Agentic-Verification 官方依赖；请按对应工具自己的文档准备。
+
 ## 启动 VeriAgent MCP server
 
 示例仍需显式传入 workflow：
@@ -42,29 +38,14 @@ veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
   -s -hm --tui \
-  --backend=qwen
+  --backend=<legacy-backend>
 ```
 
-也可以只把 VeriAgent 作为 MCP 工具服务使用，但该方式不再作为推荐路径。
-
-## 启动 Qwen Code
-
-另开一个终端，进入 workspace：
-
-```bash
-cd output/workspace_Adder
-qwen
-```
-
-建议初始提示：
-
-```text
-请通过工具 RoleInfo 获取你的角色信息和基本指导，然后完成任务。请使用工具 ReadTextFile 读取文件。你需要在当前工作目录进行文件操作，不要超出该目录。
-```
+该方式不包含 `codex_app_server` 的 thread/turn/event contract，仅用于旧流程兼容。
 
 ## 注意事项
 
 - 该模式需要人工观察 TUI 判断阶段是否卡住。
-- 外部 Qwen 的 turn/event 不会像 `codex_app_server` 一样进入 `.veriagent/codex_events.jsonl`。
-- 如果 Qwen 停止但 stage 未完成，需要手动输入“继续”或检查 `Check` / `Complete` 返回。
-- 对新 example 和 benchmark，请使用监督式 Codex SDK 路径。
+- 外部 client 的 turn/event 不会像 `codex_app_server` 一样进入 `.veriagent/codex_events.jsonl`。
+- 如果外部 client 停止但 stage 未完成，需要手动继续或检查 `Check` / `Complete` 返回。
+- 对新 example、benchmark 和可复现实验，请使用监督式 Codex SDK 路径。

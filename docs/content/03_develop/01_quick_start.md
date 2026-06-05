@@ -248,11 +248,13 @@ stage:
 
 ```bash
 python3 ../../veriagent.py \
-        ./output/  \
-		--mcp-server-no-file-tools \
-		--config ./mini.yaml \
-		--guid-doc-path ./Guide_Doc/ \
-		-s -hm --tui --no-embed-tools
+        ./output/ Calculator \
+        --mcp-server-no-file-tools \
+        --config ./mini.yaml \
+        --guid-doc-path ./Guide_Doc/ \
+        -s -hm --tui --loop \
+        --backend=codex_app_server \
+        --no-embed-tools
 ```
 
-之后在`examples/MyWorkflow/output`下启动Code Agent输入提示词即可。
+该命令会由 VeriAgent 启动 MCP、TUI 和监督循环，并通过 Codex SDK backend 推动每个 turn。无需另开外部 Code Agent 终端。
