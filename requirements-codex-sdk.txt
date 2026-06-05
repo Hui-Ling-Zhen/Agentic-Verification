@@ -14,7 +14,12 @@
 #
 #   git clone https://github.com/openai/codex ../codex
 #   pip install -e ../codex/sdk/python
+#   npm install -g @openai/codex  # or: brew install --cask codex
 #   export CODEX_BIN="$(which codex)"
+#
+# The editable SDK install does not provide the `codex` binary. CODEX_BIN must
+# point to a separately installed or built OpenAI Codex executable that supports
+# `codex app-server`.
 #
 # Keep `--backend=codex` / `codex exec` as legacy only. It does not provide the
 # app-server thread/turn/event contract that VeriAgent records in manifests.

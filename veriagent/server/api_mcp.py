@@ -77,7 +77,6 @@ class PdbMcpServer:
         "PathList",
         "GetFileInfo",
         "ReadBinFile",
-        "ReadTextFile",
         "SearchText",
         "FindFiles",
         "EditTextFile",

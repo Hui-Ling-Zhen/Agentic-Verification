@@ -3,6 +3,7 @@
 
 import os
 import sys
+import pytest
 from types import SimpleNamespace
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -253,3 +254,48 @@ def test_codex_app_server_resolves_codex_bin_from_path(tmp_path, monkeypatch):
     )
 
     assert backend._resolve_codex_bin() == str(codex_bin)
+
+
+def test_codex_app_server_declines_unowned_approval_requests(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    backend = CodexAppServerBackend(
+        FakeAgent(str(workspace)),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        codex_factory=lambda: FakeCodex(),
+    )
+    backend.CWD = str(workspace)
+    backend.EVENT_LOG_FILE = str(workspace / ".veriagent" / "codex_events.jsonl")
+
+    decision = backend._handle_approval_request(
+        "item/commandExecution/requestApproval",
+        {"threadId": "thread-1", "turnId": "turn-1", "itemId": "item-1"},
+    )
+
+    assert decision == {"decision": "decline"}
+    assert backend._approval_requests[0]["method"] == "item/commandExecution/requestApproval"
+    assert (workspace / ".veriagent" / "codex_events.jsonl").exists()
+
+
+def test_codex_app_server_kwargs_match_openai_codex_sdk_models(tmp_path):
+    pytest.importorskip("codex_app_server")
+    from codex_app_server.generated.v2_all import ThreadStartParams, TurnStartParams
+
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    backend = CodexAppServerBackend(
+        FakeAgent(str(workspace)),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        model="gpt-test",
+        sandbox="workspace-write",
+        codex_network_access="disabled",
+        codex_factory=lambda: FakeCodex(),
+    )
+    backend.CWD = str(workspace)
+
+    ThreadStartParams(**backend._clean_kwargs(backend._thread_kwargs()))
+    TurnStartParams(
+        thread_id="thread-1",
+        input=[{"type": "text", "text": "hello"}],
+        **backend._clean_kwargs(backend._turn_kwargs()),
+    )

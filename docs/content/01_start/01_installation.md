@@ -23,6 +23,8 @@
   pip3 install -e .
   git clone https://github.com/openai/codex ../codex
   pip3 install -e ../codex/sdk/python
+  # SDK editable install 不会提供 codex binary；还需要安装或构建 OpenAI Codex：
+  npm install -g @openai/codex  # 或：brew install --cask codex
   export CODEX_BIN="$(which codex)"
   ```
 
@@ -31,6 +33,7 @@
   pip3 install git+https://github.com/Hui-Ling-Zhen/Agentic-Verification
   git clone https://github.com/openai/codex ../codex
   pip3 install -e ../codex/sdk/python
+  npm install -g @openai/codex  # 或：brew install --cask codex
   export CODEX_BIN="$(which codex)"
   veriagent --help # 确认安装成功
   ```
@@ -43,8 +46,10 @@
 python -c "import veriagent; print('ok: veriagent')"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
+codex app-server --help >/dev/null
 picker --version
 veriagent --help
+veriagent --check
 ```
 
 新任务请使用 `--backend=codex_app_server --mcp-server-no-file-tools --loop --config examples/.../workflow/*.yaml`。旧外部 Code Agent / 被动 MCP 方式仅作为 legacy 兼容保留，见 [Legacy 外部 MCP](../02_usage/legacy_qwen_mcp.md)。

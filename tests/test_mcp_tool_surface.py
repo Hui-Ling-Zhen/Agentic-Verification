@@ -23,4 +23,9 @@ def test_filter_generic_file_tools_keeps_verification_tools():
 
     filtered = server._filter_generic_file_tools(tools)
 
-    assert [tool.name for tool in filtered] == ["Check", "Complete", "RunTestCases"]
+    assert [tool.name for tool in filtered] == [
+        "ReadTextFile",
+        "Check",
+        "Complete",
+        "RunTestCases",
+    ]

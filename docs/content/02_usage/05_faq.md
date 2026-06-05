@@ -42,8 +42,10 @@ veriagent output/workspace_Adder/ Adder \
 ```bash
 git clone https://github.com/openai/codex ../codex
 pip install -e ../codex/sdk/python
+npm install -g @openai/codex  # 或：brew install --cask codex
 export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server"
+codex app-server --help >/dev/null
 ```
 
 基础依赖仍通过：

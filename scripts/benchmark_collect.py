@@ -37,6 +37,8 @@ CSV_FIELDS = [
     "codex_bin",
     "sandbox_mode",
     "network_access",
+    "codex_write_policy",
+    "codex_command_policy",
     "policy_enforcement",
     "version",
     "workspace",

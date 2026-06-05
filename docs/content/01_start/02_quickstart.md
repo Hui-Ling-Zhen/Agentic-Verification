@@ -33,10 +33,14 @@ cd Agentic-Verification
 pip3 install -e .
 git clone https://github.com/openai/codex ../codex
 pip3 install -e ../codex/sdk/python
+# SDK editable install 不会提供 codex binary；还需要安装或构建 OpenAI Codex：
+npm install -g @openai/codex  # 或：brew install --cask codex
 export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
+codex app-server --help >/dev/null
 picker --version
+veriagent --check
 ```
 
 也可以使用 pip 安装：

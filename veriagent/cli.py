@@ -16,6 +16,7 @@ import ntpath
 import posixpath
 import shutil
 import tarfile
+import subprocess
 from typing import Dict, List, Any, Optional
 import tempfile
 import traceback
@@ -986,6 +987,8 @@ def do_check() -> None:
         info(f"\033[92m{msg}\033[0m")
     def echo_r(msg: str):
         info(f"\033[91m{msg}\033[0m")
+    def echo_y(msg: str):
+        info(f"\033[93m{msg}\033[0m")
     def check_exist(msg, file_path: str, indent=0):
         indent_str = '  ' * indent
         file_list = glob.glob(file_path)  # expand wildcards
@@ -1015,6 +1018,65 @@ def do_check() -> None:
                         check_exist(f"'{lang}' template", os.path.join(templates_dir, template_file))
                 else:
                     echo_r(f"{templates_dir} [Error, Not Found]")
+    # 3. Check official Codex app-server path dependencies.
+    try:
+        import codex_app_server
+        version = getattr(codex_app_server, "__version__", "unknown")
+        echo_g(f"codex_app_server import [OK] version={version}")
+    except Exception as exc:
+        echo_r(
+            "codex_app_server import [Error]. Install OpenAI Codex SDK with "
+            "`pip install -e ../codex/sdk/python`: " + str(exc)
+        )
+
+    codex_bin = os.environ.get("CODEX_BIN") or shutil.which("codex")
+    if codex_bin:
+        codex_bin = os.path.abspath(os.path.expanduser(os.path.expandvars(codex_bin)))
+        if os.path.isfile(codex_bin) and os.access(codex_bin, os.X_OK):
+            echo_g(f"Codex binary [OK] {codex_bin}")
+            try:
+                result = subprocess.run(
+                    [codex_bin, "--version"],
+                    check=False,
+                    text=True,
+                    capture_output=True,
+                    timeout=10,
+                )
+                output = (result.stdout or result.stderr or "").strip()
+                if result.returncode == 0:
+                    echo_g(f"codex --version [OK] {output}")
+                else:
+                    echo_y(f"codex --version [Warning] exit={result.returncode} {output}")
+            except Exception as exc:
+                echo_y(f"codex --version [Warning] {exc}")
+            try:
+                result = subprocess.run(
+                    [codex_bin, "app-server", "--help"],
+                    check=False,
+                    text=True,
+                    capture_output=True,
+                    timeout=10,
+                )
+                if result.returncode == 0:
+                    echo_g("codex app-server --help [OK]")
+                else:
+                    output = (result.stdout or result.stderr or "").strip()
+                    echo_r(f"codex app-server --help [Error] exit={result.returncode} {output}")
+            except Exception as exc:
+                echo_r(f"codex app-server --help [Error] {exc}")
+        else:
+            echo_r(f"Codex binary [Error] not executable: {codex_bin}")
+    else:
+        echo_r(
+            "Codex binary [Error]. Install https://github.com/openai/codex "
+            "or export CODEX_BIN to a built/open-source codex binary."
+        )
+
+    for env_name in ("OPENAI_API_BASE", "OPENAI_API_KEY", "OPENAI_MODEL"):
+        if os.environ.get(env_name):
+            echo_g(f"{env_name} [OK]")
+        else:
+            echo_y(f"{env_name} [Warning, not set]")
     # exit after check
     sys.exit(0)
 

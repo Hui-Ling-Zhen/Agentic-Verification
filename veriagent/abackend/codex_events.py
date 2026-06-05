@@ -27,6 +27,12 @@ class CodexRuntimeEvent:
 
     def to_record(self) -> dict[str, Any]:
         """Return a JSON-serializable event record for supervisor audit logs."""
+        raw = _dump_model(self.raw) or self.raw
+        try:
+            import json
+            json.dumps(raw)
+        except Exception:
+            raw = str(raw)
         return {
             "kind": self.kind,
             "thread_id": self.thread_id,
@@ -38,6 +44,7 @@ class CodexRuntimeEvent:
             "file_paths": list(self.file_paths),
             "usage": self.usage,
             "status": self.status,
+            "raw": raw,
         }
 
 
@@ -139,6 +146,28 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
         text = _get_attr(payload, "delta") or _get_attr(payload, "text")
         if text:
             events.append(CodexRuntimeEvent("agent_message_delta", thread_id, turn_id, text=str(text), raw=notification))
+        if events:
+            return events
+        events.append(
+            CodexRuntimeEvent(
+                "unknown",
+                thread_id,
+                turn_id,
+                status=str(method or "unknown"),
+                raw=notification,
+            )
+        )
+        if events:
+            return events
+        events.append(
+            CodexRuntimeEvent(
+                "unknown",
+                thread_id,
+                turn_id,
+                status=str(method or "unknown"),
+                raw=notification,
+            )
+        )
         return events
 
     if method == "item/commandExecution/outputDelta":
@@ -163,6 +192,67 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
         return events
 
     if method not in {"item/started", "item/completed"}:
+        if method == "turn/started":
+            turn = _get_attr(payload, "turn")
+            events.append(
+                CodexRuntimeEvent(
+                    "turn_started",
+                    thread_id,
+                    _get_attr(turn, "id") or turn_id,
+                    status=_status_to_str(_get_attr(turn, "status")),
+                    raw=notification,
+                )
+            )
+            return events
+        if method == "turn/diff/updated":
+            events.append(
+                CodexRuntimeEvent(
+                    "turn_diff_updated",
+                    thread_id,
+                    turn_id,
+                    text=str(_get_attr(payload, "diff", "")),
+                    raw=notification,
+                )
+            )
+            return events
+        if method == "turn/plan/updated":
+            plan = _dump_model(_get_attr(payload, "plan")) or _get_attr(payload, "plan")
+            events.append(
+                CodexRuntimeEvent(
+                    "turn_plan_updated",
+                    thread_id,
+                    turn_id,
+                    text=str(plan or ""),
+                    raw=notification,
+                )
+            )
+            return events
+        if method == "error":
+            error_payload = _dump_model(_get_attr(payload, "error")) or _dump_model(payload) or payload
+            events.append(
+                CodexRuntimeEvent(
+                    "error",
+                    thread_id,
+                    turn_id,
+                    text=str(error_payload),
+                    status="failed",
+                    raw=notification,
+                )
+            )
+            return events
+        if method == "mcpServer/startupStatus/updated":
+            events.append(
+                CodexRuntimeEvent(
+                    "mcp_server_startup_status",
+                    thread_id,
+                    turn_id,
+                    tool=_get_attr(payload, "name"),
+                    status=_status_to_str(_get_attr(payload, "status")),
+                    text=str(_get_attr(payload, "error") or ""),
+                    raw=notification,
+                )
+            )
+            return events
         if method == "thread/tokenUsage/updated":
             usage = _dump_model(_get_attr(payload, "token_usage")) or _dump_model(_get_attr(payload, "tokenUsage"))
             events.append(
@@ -188,6 +278,17 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
                     raw=notification,
                 )
             )
+        if events:
+            return events
+        events.append(
+            CodexRuntimeEvent(
+                "unknown",
+                thread_id,
+                turn_id,
+                status=str(method or "unknown"),
+                raw=notification,
+            )
+        )
         return events
 
     phase = "started" if method == "item/started" else "completed"
@@ -229,4 +330,13 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
             events.append(CodexRuntimeEvent("file_observed", tool=tool, file_paths=paths, **base))
         return events
 
+    events.append(
+        CodexRuntimeEvent(
+            "unknown",
+            thread_id,
+            turn_id,
+            status=str(method or "unknown"),
+            raw=notification,
+        )
+    )
     return events

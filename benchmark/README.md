@@ -25,14 +25,18 @@ Example fields:
 | `codex_file_changes` | File paths changed in the last turn |
 | `codex_failure_reason` | Reason for non-completed turns |
 | `codex_event_log` | Path to `.veriagent/codex_events.jsonl` |
+| `codex_approval_requests` | Approval requests intercepted by VeriAgent |
 | `codex_config_file` | Rendered `.codex/config.toml` used by the SDK backend |
 | `codex_bin` | OpenAI Codex binary resolved from `CODEX_BIN` or `PATH` |
+| `codex_metadata` | Codex app-server initialize metadata when available |
 | `sandbox_mode` | Codex sandbox mode written to config |
+| `turn_sandbox_policy` | Sandbox policy passed to the current Codex turn |
 | `network_access` | Codex network access setting |
 | `writable_roots` | Writable roots from the rendered sandbox policy |
 | `protected_inputs` | Input directories VeriAgent expects to keep read-only |
 | `policy_enforcement` | Current enforcement model, usually `codex_sandbox_os_permissions` |
 | `veriagent_policy` | `audit_hint_only`; not a Codex-enforced policy engine |
+| `codex_write_policy` / `codex_command_policy` | VeriAgent audit hints rendered into `.codex/config.toml` |
 | `policy_warnings` | Read-only/protection warnings observed at startup |
 | `all_completed` | All stages finished |
 | `stage_index` | Current stage index |

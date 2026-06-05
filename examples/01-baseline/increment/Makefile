@@ -29,7 +29,7 @@ init_workspace:
 		echo "Refreshing increment/output from baseline..."; \
 		rm -rf output; \
 		cp -r $(BASELINE_OUT) output; \
-		rm -f output/workspace_Adder/.veriagent 2>/dev/null || true; \
+		rm -f output/workspace_Adder/.veriagent/codex_thread.json 2>/dev/null || true; \
 	fi
 
 init: init_workspace

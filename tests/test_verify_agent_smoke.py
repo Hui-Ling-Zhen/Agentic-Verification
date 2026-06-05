@@ -97,3 +97,53 @@ stage:
     assert fake_backend.inited is True
     assert "Adder" in agent.cfg.un_write_dirs
     assert "Adder_RTL" in agent.cfg.un_write_dirs
+
+
+def test_official_codex_path_starts_mcp_before_backend(monkeypatch):
+    from types import SimpleNamespace
+
+    langfuse = ModuleType("langfuse")
+    langfuse.Langfuse = object
+    langfuse_langchain = ModuleType("langfuse.langchain")
+    langfuse_langchain.CallbackHandler = object
+    monkeypatch.setitem(sys.modules, "langfuse", langfuse)
+    monkeypatch.setitem(sys.modules, "langfuse.langchain", langfuse_langchain)
+
+    from veriagent import verify_agent
+
+    started = []
+
+    class FakeBackend:
+        def requires_verification_only_mcp(self):
+            return True
+
+    class FakePdbMcpServer:
+        def __init__(self, pdb, host, port, no_file_ops=False):
+            self.pdb = pdb
+            self.host = host
+            self.port = port
+            self.no_file_ops = no_file_ops
+            self.is_running = True
+
+        def start(self):
+            started.append((self.host, self.port, self.no_file_ops))
+            return True, "started"
+
+    server_module = ModuleType("veriagent.server")
+    server_module.PdbMcpServer = FakePdbMcpServer
+    monkeypatch.setitem(sys.modules, "veriagent.server", server_module)
+
+    agent = verify_agent.VerifyAgent.__new__(verify_agent.VerifyAgent)
+    agent.backend = FakeBackend()
+    agent.pdb = SimpleNamespace(_mcp_server=None)
+    agent.cfg = SimpleNamespace(mcp_server=SimpleNamespace(host="127.0.0.1", port=5000))
+    monkeypatch.setattr(
+        verify_agent.VerifyAgent,
+        "_wait_for_mcp_server_ready",
+        lambda self, host, port: None,
+    )
+
+    agent._ensure_official_codex_mcp_server()
+
+    assert started == [("127.0.0.1", 5000, True)]
+    assert agent.pdb._mcp_server.no_file_ops is True

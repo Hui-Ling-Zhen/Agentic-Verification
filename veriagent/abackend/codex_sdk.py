@@ -90,6 +90,9 @@ class CodexAppServerBackend(AgentBackendBase):
         self._last_response = ""
         self._event_counts = {"mcp_tool_calls": 0, "file_changes": 0}
         self._failure_reason = None
+        self._approval_requests: list[dict[str, Any]] = []
+        self._last_turn_sandbox_policy: dict[str, Any] | None = None
+        self._codex_metadata: dict[str, Any] = {}
 
     def _get_assets_path(self):
         current_path = os.path.dirname(os.path.abspath(__file__))
@@ -112,6 +115,9 @@ class CodexAppServerBackend(AgentBackendBase):
             "CWD": self.CWD or self.vagent.workspace,
             "DUT": getattr(self.vagent, "dut_name", ""),
             "PORT": self._get_mcp_port(),
+            "OPENAI_API_BASE": os.environ.get("OPENAI_API_BASE", ""),
+            "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", ""),
+            "OPENAI_MODEL": self.model or os.environ.get("OPENAI_MODEL", "gpt-5.5"),
             "SANDBOX": self.sandbox or "workspace-write",
             "CODEX_NETWORK_ACCESS": self.codex_network_access,
             "CODEX_WRITE_POLICY": self.codex_write_policy,
@@ -159,6 +165,7 @@ class CodexAppServerBackend(AgentBackendBase):
             return self.codex_factory()
         try:
             from codex_app_server import AppServerConfig, Codex
+            from codex_app_server.client import AppServerClient
         except ImportError as exc:
             raise ImportError(
                 "Codex app-server SDK is required for backend 'codex_app_server'. "
@@ -177,7 +184,19 @@ class CodexAppServerBackend(AgentBackendBase):
             client_name="veriagent",
             client_title="Agentic-Verification",
         )
-        return Codex(config=app_config)
+        codex = Codex.__new__(Codex)
+        codex._client = AppServerClient(
+            config=app_config,
+            approval_handler=self._handle_approval_request,
+        )
+        try:
+            codex._client.start()
+            codex._init = codex._validate_initialize(codex._client.initialize())
+            self._codex_metadata = self._dump_model(codex._init)
+        except Exception:
+            codex._client.close()
+            raise
+        return codex
 
     @staticmethod
     def _is_executable_file(path: str) -> bool:
@@ -243,8 +262,91 @@ class CodexAppServerBackend(AgentBackendBase):
             "effort": self.effort,
             "model": self.model,
             "personality": self.personality,
+            "sandbox_policy": self._turn_sandbox_policy(),
             "service_tier": self.service_tier,
         }
+
+    @staticmethod
+    def _dump_model(obj: Any) -> dict[str, Any]:
+        if obj is None:
+            return {}
+        if isinstance(obj, dict):
+            return obj
+        if hasattr(obj, "model_dump"):
+            try:
+                return obj.model_dump(by_alias=True, mode="json", exclude_none=True)
+            except TypeError:
+                return obj.model_dump()
+        return {}
+
+    def _network_access_enabled(self) -> bool:
+        raw = str(self.codex_network_access or "").strip().lower()
+        return raw in {"enabled", "enable", "true", "1", "yes", "on"}
+
+    def _turn_sandbox_policy(self):
+        self._last_turn_sandbox_policy = None
+        sandbox_mode = self.sandbox or "workspace-write"
+        try:
+            from codex_app_server.generated.v2_all import (
+                DangerFullAccessSandboxPolicy,
+                ReadOnlySandboxPolicy,
+                SandboxPolicy,
+                WorkspaceWriteSandboxPolicy,
+            )
+        except ImportError:
+            return None
+
+        if sandbox_mode == "workspace-write":
+            policy_root = WorkspaceWriteSandboxPolicy(
+                type="workspaceWrite",
+                writableRoots=[self.CWD],
+                networkAccess=self._network_access_enabled(),
+            )
+        elif sandbox_mode == "read-only":
+            policy_root = ReadOnlySandboxPolicy(
+                type="readOnly",
+                networkAccess=self._network_access_enabled(),
+            )
+        elif sandbox_mode == "danger-full-access":
+            policy_root = DangerFullAccessSandboxPolicy(type="dangerFullAccess")
+        else:
+            warning(
+                f"Unsupported Codex sandbox mode for turn-level policy: {sandbox_mode}; "
+                "falling back to Codex thread/config defaults."
+            )
+            return None
+
+        policy = SandboxPolicy(root=policy_root)
+        self._last_turn_sandbox_policy = self._dump_model(policy)
+        return policy
+
+    def _handle_approval_request(self, method: str, params: dict[str, Any] | None) -> dict[str, Any]:
+        payload = params if isinstance(params, dict) else {}
+        request = {
+            "method": method,
+            "thread_id": payload.get("threadId") or payload.get("thread_id"),
+            "turn_id": payload.get("turnId") or payload.get("turn_id"),
+            "item_id": payload.get("itemId") or payload.get("item_id"),
+            "payload": payload,
+        }
+        self._approval_requests.append(request)
+        event = CodexRuntimeEvent(
+            "approval_requested",
+            thread_id=request["thread_id"],
+            turn_id=request["turn_id"],
+            item_id=request["item_id"],
+            status="declined",
+            raw=request,
+        )
+        try:
+            self._handle_event(event)
+        except Exception:
+            pass
+        warning(
+            f"Codex app-server requested approval via {method}; "
+            "VeriAgent declined it because approval is not yet delegated to Codex."
+        )
+        return {"decision": "decline"}
 
     def policy_summary(self):
         cwd = self.CWD or self.vagent.workspace
@@ -257,12 +359,16 @@ class CodexAppServerBackend(AgentBackendBase):
         return {
             "codex_config_file": self.CODEX_CONFIG_FILE or os.path.join(cwd, ".codex", "config.toml"),
             "codex_bin": self.codex_bin,
+            "codex_metadata": self._codex_metadata,
             "sandbox_mode": self.sandbox or "workspace-write",
+            "turn_sandbox_policy": self._last_turn_sandbox_policy,
             "network_access": self.codex_network_access,
             "writable_roots": [cwd],
             "protected_inputs": protected_inputs,
             "policy_enforcement": "codex_sandbox_os_permissions",
             "veriagent_policy": "audit_hint_only",
+            "codex_write_policy": self.codex_write_policy,
+            "codex_command_policy": self.codex_command_policy,
         }
 
     def _clean_kwargs(self, kwargs):
@@ -339,6 +445,7 @@ class CodexAppServerBackend(AgentBackendBase):
             "codex_network_access": self.codex_network_access,
             "codex_write_policy": self.codex_write_policy,
             "codex_command_policy": self.codex_command_policy,
+            "codex_bin": self.codex_bin,
         })
 
     def _current_session_fingerprint(self):
@@ -441,6 +548,7 @@ class CodexAppServerBackend(AgentBackendBase):
         self._last_turn = {}
         self._event_counts = {"mcp_tool_calls": 0, "file_changes": 0}
         self._failure_reason = None
+        self._approval_requests = []
         kwargs = self._clean_kwargs(self._turn_kwargs())
         self._active_turn = self._thread.turn(str(prompt), **kwargs)
         self._session_store.update(last_turn_id=self._active_turn.id)
@@ -534,6 +642,8 @@ class CodexAppServerBackend(AgentBackendBase):
             "response": self._last_response,
             "mcp_tool_calls": self._event_counts["mcp_tool_calls"],
             "file_changes": self._event_counts["file_changes"],
+            "approval_requests": list(self._approval_requests),
+            "turn_sandbox_policy": self._last_turn_sandbox_policy,
             "failure_reason": failure_reason,
             "event_log": self.EVENT_LOG_FILE,
         }

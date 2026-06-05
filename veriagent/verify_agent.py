@@ -432,6 +432,7 @@ class VerifyAgent:
             ),
             loop_alive_time=self.cfg.loop_settings.loop_alive_time,
         )
+        self._ensure_official_codex_mcp_server()
         self.backend.init()
         self.backend.set_debug(debug)
         self.set_tool_call_time_out(self.cfg.get_value("call_time_out", 300))
@@ -453,6 +454,52 @@ class VerifyAgent:
                 "Can't connect to langfuse, please check your configuration"
             )
             self.langfuse_handler = CallbackHandler()
+
+    def _ensure_official_codex_mcp_server(self):
+        """Start verification-only MCP before the Codex app-server backend connects."""
+        try:
+            requires_domain_tools = self.backend.requires_verification_only_mcp()
+        except AttributeError:
+            requires_domain_tools = False
+        if not requires_domain_tools:
+            return
+
+        existing = getattr(self.pdb, "_mcp_server", None)
+        if existing is not None and getattr(existing, "is_running", False):
+            if not getattr(existing, "no_file_ops", False):
+                raise RuntimeError(
+                    "Official codex_app_server path requires verification-only MCP "
+                    "(no file operation tools). Stop the existing MCP server first."
+                )
+            return
+
+        from veriagent.server import PdbMcpServer
+
+        host = self.cfg.mcp_server.host
+        port = self.cfg.mcp_server.port
+        server = PdbMcpServer(self.pdb, host=host, port=port, no_file_ops=True)
+        ok, msg = server.start()
+        if not ok:
+            raise RuntimeError(f"Failed to start verification-only MCP server: {msg}")
+        self.pdb._mcp_server = server
+        self._wait_for_mcp_server_ready(host, port)
+        info(msg)
+
+    def _wait_for_mcp_server_ready(self, host, port, timeout_sec=10.0):
+        import socket
+
+        deadline = time.time() + timeout_sec
+        last_error = None
+        while time.time() < deadline:
+            try:
+                with socket.create_connection((host, int(port)), timeout=0.5):
+                    return
+            except OSError as exc:
+                last_error = exc
+                time.sleep(0.1)
+        raise RuntimeError(
+            f"Verification-only MCP server did not become ready at {host}:{port}: {last_error}"
+        )
 
     def get_messages_cfg(self, keys: Optional[List[str]] = None) -> Dict[str, Any]:
         if self.message_manage_node is None:

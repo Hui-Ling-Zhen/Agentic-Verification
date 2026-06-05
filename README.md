@@ -49,10 +49,14 @@ cd Agentic-Verification
 pip3 install -e .
 git clone https://github.com/openai/codex ../codex
 pip3 install -e ../codex/sdk/python
+# The SDK install does not provide a binary; install or build OpenAI Codex too:
+npm install -g @openai/codex  # or: brew install --cask codex
 export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
+codex app-server --help >/dev/null
 picker --version
+veriagent --check
 make example-baseline
 ```
 

@@ -88,17 +88,23 @@ def build_run_manifest(
         "codex_file_changes": turn.get("file_changes", 0),
         "codex_failure_reason": turn.get("failure_reason"),
         "codex_event_log": turn.get("event_log"),
+        "codex_approval_requests": turn.get("approval_requests", []),
+        "codex_turn_sandbox_policy": turn.get("turn_sandbox_policy"),
     })
     policy_data = policy or {}
     manifest.update({
         "codex_config_file": policy_data.get("codex_config_file"),
         "codex_bin": policy_data.get("codex_bin"),
+        "codex_metadata": policy_data.get("codex_metadata", {}),
         "sandbox_mode": policy_data.get("sandbox_mode"),
+        "turn_sandbox_policy": policy_data.get("turn_sandbox_policy"),
         "network_access": policy_data.get("network_access"),
         "writable_roots": policy_data.get("writable_roots", []),
         "protected_inputs": policy_data.get("protected_inputs", []),
         "policy_enforcement": policy_data.get("policy_enforcement"),
         "veriagent_policy": policy_data.get("veriagent_policy"),
+        "codex_write_policy": policy_data.get("codex_write_policy"),
+        "codex_command_policy": policy_data.get("codex_command_policy"),
         "policy_warnings": policy_data.get("policy_warnings", []),
     })
     return manifest
