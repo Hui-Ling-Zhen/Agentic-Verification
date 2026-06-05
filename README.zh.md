@@ -20,6 +20,7 @@ Workflow **外置**于 `examples/*/workflow/`，必须通过 **`--config`** 显�
 
 - Python 3.11+，Linux / macOS，建议 4GB+ 内存
 - [Codex CLI](https://github.com/openai/codex)（`codex` 在 PATH 中）
+- Codex app-server Python SDK（`codex_app_server`）与 MCP Python 包（`mcp`），由 `requirements.txt` 安装
 - [picker](https://github.com/XS-MLVP/picker)
 - 模型端点（供 Codex 使用，OpenAI 兼容）：
 
@@ -124,7 +125,7 @@ make benchmark   # → benchmark/summary.csv、benchmark/runs.json
 ```
 Agentic-Verification/
 ├── README.md
-├── veriagent/              # Runtime（默认 backend=codex）
+├── veriagent/              # Runtime（默认 backend=codex_app_server）
 ├── examples/               # case + workflow + skills
 └── Makefile                # VERIAGENT_SUPERVISED_CODEX 标准参数
 ```

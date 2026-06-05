@@ -22,6 +22,8 @@ writable_roots = ["{{CWD}}"]
 network_access = "{{CODEX_NETWORK_ACCESS}}"
 
 [veriagent_policy]
+# Audit-only policy hints for VeriAgent/Codex operators. Hard enforcement comes
+# from sandbox_mode, writable_roots, and OS read-only protection on inputs.
 write_policy = "{{CODEX_WRITE_POLICY}}"
 command_policy = "{{CODEX_COMMAND_POLICY}}"
 protected_inputs = ["{{CWD}}/{{DUT}}", "{{CWD}}/{{DUT}}_RTL", "{{CWD}}/Guide_Doc", "{{CWD}}/skills"]

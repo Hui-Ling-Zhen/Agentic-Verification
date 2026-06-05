@@ -120,10 +120,10 @@ mkdir output
 cp -r examples/06-planning/genspec/Adder output/
 
 # 3. 启动 GenSpec 流程 (使用 MCP 集成模式)
-veriagent output/ Adder --config examples/06-planning/genspec/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
 
 # 或者直接启动 TUI 模式
-veriagent output/ Adder --config examples/06-planning/genspec/genspec.yaml -hm --tui -s --no-embed-tools -l --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui -s --no-embed-tools -l --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
 ```
 
 ### 规范生成流程配置说明
@@ -217,7 +217,7 @@ GenSpec 支持通过 MCP 协议与外部 Code Agent 协作:
 2. **启动 MCP Server**
 
 ```bash
-veriagent output/ Adder --config examples/06-planning/genspec/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
 ```
 
 3. **在 MCP Client 中启动协作**
@@ -328,7 +328,7 @@ SKIP_HUMAN_CHECK=true make spec_Adder
 
 **A**:
 
-1. **通用配置模板**: `examples/06-planning/genspec/genspec.yaml` 可作为模板复用
+1. **通用配置模板**: `examples/06-planning/workflow/genspec.yaml` 可作为模板复用
 2. **项目级配置**: 将 `genspec.yaml` 放在项目根目录,所有模块共享
 3. **模块级定制**: 在 `examples/{DUT}/genspec.yaml` 中覆盖特定配置
 

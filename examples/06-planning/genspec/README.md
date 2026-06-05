@@ -17,7 +17,7 @@
 
 ## 监督式 Codex 运行
 
-Workflow：`examples/06-planning/genspec/genspec.yaml`
+Workflow：`examples/06-planning/workflow/genspec.yaml`
 
 ```bash
 cd examples/06-planning/genspec
@@ -28,7 +28,7 @@ make spec_DCache
 
 ```bash
 veriagent output/ DCache \
-  --config examples/06-planning/genspec/genspec.yaml \
+  --config examples/06-planning/workflow/genspec.yaml \
   --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md \
   --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
   --no-embed-tools
@@ -53,8 +53,8 @@ Spec 文档是进行芯片验证与回归管理的基础。很多团队在项目
 
 ---
 
-### `genspec.yaml` 配置要点
-`genspec.yaml` 负责告诉 VeriAgent 如何组织任务。如需了解具体内容请查看该文件。
+### `workflow/genspec.yaml` 配置要点
+`../workflow/genspec.yaml` 负责告诉 VeriAgent 如何组织任务。如需了解具体内容请查看该文件。
 参考spec模板文件为 `SpecDoc/dut_spec_template.md`。
 
 ### 生成流程

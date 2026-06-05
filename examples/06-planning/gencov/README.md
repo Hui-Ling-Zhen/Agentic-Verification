@@ -26,12 +26,13 @@
 ## 目录结构
 
 - `IFU/` — 输入材料（hvp / rtl / doc / chisel）
-- `GenCov/` — `gencov.yaml`、一致性脚本、skeletons
+- `workflow/gencov.yaml` — VeriAgent workflow
+- `GenCov/` — 一致性脚本、skeletons
 - `Makefile` — 启动入口
 
 ## 监督式 Codex 运行
 
-Workflow：`examples/06-planning/gencov/GenCov/gencov.yaml`
+Workflow：`examples/06-planning/workflow/gencov.yaml`
 
 ```bash
 make -C examples/06-planning/gencov init_IFU
@@ -40,7 +41,7 @@ make -C examples/06-planning/gencov gencov_IFU
 
 ```bash
 veriagent output/ IFU \
-  --config examples/06-planning/gencov/GenCov/gencov.yaml \
+  --config examples/06-planning/workflow/gencov.yaml \
   --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
   --no-embed-tools
 ```

@@ -18,7 +18,7 @@ examples/02-peripheral-ip/workflow/default.yaml
 examples/03-microarch/workflow/default.yaml
 examples/04-algorithm/workflow/default.yaml
 examples/05-formal/workflow/formal.yaml      # Formal 11-stage
-examples/06-planning/genspec/genspec.yaml    # Spec 生成（独立 workflow）
+examples/06-planning/workflow/genspec.yaml   # Spec 生成（独立 workflow）
 ```
 
 Makefile 与 Web Master 会指向上述路径；也可手动：

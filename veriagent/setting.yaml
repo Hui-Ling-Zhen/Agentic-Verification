@@ -123,7 +123,7 @@ launch:
     stream_output: true               # -s flag
     human: true                       # -hm flag
     tui: true                         # --tui flag
-    backend: "codex"
+    backend: "codex_app_server"
     mcp_server_no_file_tools: true
     web_console: "0.0.0.0:-1"         # --web-console flag
     loop: true                        # -l flag (supervised loop; required with codex backend)
@@ -139,6 +139,8 @@ launch:
       "04-algorithm UT": "examples/04-algorithm/workflow/default.yaml"
       "05-formal": "examples/05-formal/workflow/formal.yaml"
       "01-baseline increment": "examples/01-baseline/workflow/inc.yaml"
+      "06-planning GenSpec": "examples/06-planning/workflow/genspec.yaml"
+      "06-planning GenCov": "examples/06-planning/workflow/gencov.yaml"
       empty: "veriagent/lang/zh/config/empty.yaml"
   cluster:
     image: "ghcr.nju.edu.cn/xs-mlvp/veriagent:latest" # container image used by docker, docker_swarm, and k8s launch modes

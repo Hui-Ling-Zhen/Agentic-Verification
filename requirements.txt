@@ -6,6 +6,8 @@ langchain_openai>=1.1.6
 langmem>=0.0.30
 mem0ai>=0.1.118
 langchain_mcp_adapters>=0.1.11
+mcp>=1.9.2
+codex_app_server
 psutil>=7.1.0
 langfuse>=3.9.1
 gitpython>=3.1.43

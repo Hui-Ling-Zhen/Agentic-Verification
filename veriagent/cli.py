@@ -281,7 +281,7 @@ def _workflow_config_examples() -> str:
         "  examples/03-microarch/workflow/default.yaml  # Sbuffer / Mock\n"
         "  examples/04-algorithm/workflow/default.yaml\n"
         "  examples/05-formal/workflow/formal.yaml      # Formal cases\n"
-        "  examples/06-planning/genspec/genspec.yaml    # GenSpec\n"
+        "  examples/06-planning/workflow/genspec.yaml   # GenSpec\n"
         "\n"
         "Or use Makefile (auto-selects workflow):\n"
         "  make example-baseline\n"

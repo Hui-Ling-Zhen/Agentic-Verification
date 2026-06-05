@@ -20,6 +20,7 @@ Workflow YAML is **externalized** under `examples/*/workflow/` — pass it with 
 
 - Python 3.11+, Linux / macOS, 4GB+ RAM
 - [Codex CLI](https://github.com/openai/codex) on `PATH`
+- Codex app-server Python SDK (`codex_app_server`) and MCP Python package (`mcp`) installed by `requirements.txt`
 - [picker](https://github.com/XS-MLVP/picker)
 - OpenAI-compatible endpoint for Codex:
 

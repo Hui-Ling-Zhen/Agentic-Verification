@@ -20,6 +20,8 @@ Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 
 官方 SDK 路径使用 `workspace-write` sandbox，并把网络、写入和命令策略写入 `.codex/config.toml`。VeriAgent 同时会把 `{DUT}`、`{DUT}_RTL`、`Guide_Doc`、`skills` 这些任务输入目录设为只读，生成测试和报告仍写入输出目录。
 
+注意：`.codex/config.toml` 中的 `veriagent_policy` 是可审计策略声明，真正的强制边界来自 Codex sandbox 与上述 OS 只读权限。
+
 ## 命令模板
 
 将 `{WORKSPACE}`、`{DUT}`、`{WORKFLOW}` 替换为本 case 的值：
