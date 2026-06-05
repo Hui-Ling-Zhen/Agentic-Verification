@@ -10,7 +10,7 @@ RTL 在 `sel=2'b11` 时错误选择 `in_data[0]`，Agent 需通过 failing test 
 
 ## 前置条件
 
-- 同 Adder；需已安装 **Codex CLI**
+- 同 Adder；需已安装 OpenAI Codex binary / app-server SDK
 
 ## 监督式 Codex 运行
 

@@ -26,6 +26,7 @@ Example fields:
 | `codex_failure_reason` | Reason for non-completed turns |
 | `codex_event_log` | Path to `.veriagent/codex_events.jsonl` |
 | `codex_config_file` | Rendered `.codex/config.toml` used by the SDK backend |
+| `codex_bin` | OpenAI Codex binary resolved from `CODEX_BIN` or `PATH` |
 | `sandbox_mode` | Codex sandbox mode written to config |
 | `network_access` | Codex network access setting |
 | `writable_roots` | Writable roots from the rendered sandbox policy |

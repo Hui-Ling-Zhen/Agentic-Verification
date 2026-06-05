@@ -25,9 +25,9 @@ Agentic-Verification 的核心循环很简单：**让 Codex 推进一步，运�
 ## 环境要求
 
 - Python 3.11+，Linux / macOS，建议 4GB+ 内存
-- [Codex CLI](https://github.com/openai/codex) 可执行文件（`codex` 在 PATH 中）
+- [OpenAI Codex](https://github.com/openai/codex) 可执行文件（`codex` 在 `PATH` 中，或通过 `CODEX_BIN` 指定）
 - MCP Python 包（`mcp`），由 `requirements.txt` 安装
-- Codex app-server Python SDK（可 import 为 `codex_app_server`）。该 SDK 目前不能通过公开 PyPI 的 `codex_app_server` 包名安装；使用 `--backend=codex_app_server` 前，请先从批准的包源或 direct URL 安装。
+- OpenAI Codex 开源 SDK：`codex/sdk/python` / package `openai-codex-app-server-sdk`，可 import 为 `codex_app_server`
 - [picker](https://github.com/XS-MLVP/picker)
 - 模型端点（供 Codex 使用，OpenAI 兼容）：
 
@@ -45,8 +45,9 @@ export OPENAI_MODEL=...
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
 pip3 install -e .
-# 然后从批准的包源安装 Codex app-server SDK：
-# pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+git clone https://github.com/openai/codex ../codex
+pip3 install -e ../codex/sdk/python
+export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
 picker --version
@@ -98,7 +99,7 @@ make benchmark   # → benchmark/summary.csv、benchmark/runs.json
 | 路径 | 状态 |
 |------|------|
 | 监督式 Codex SDK（`--backend=codex_app_server` + MCP + `--loop`） | **官方 / 已测试** |
-| Codex CLI（`--backend=codex`） | Legacy fallback，黑盒 `codex exec` 路径 |
+| Codex CLI（`--backend=codex`） | Legacy fallback，黑盒 `codex exec` 路径，不提供 SDK thread/turn/event 契约 |
 | `langchain` / 纯 API | Legacy，本仓库未持续维护 |
 | 被动 MCP（无 `--loop`） | Legacy |
 

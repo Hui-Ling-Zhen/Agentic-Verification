@@ -222,3 +222,34 @@ def test_codex_app_server_policy_summary_records_sandbox_boundary(tmp_path):
     assert summary["policy_enforcement"] == "codex_sandbox_os_permissions"
     assert summary["veriagent_policy"] == "audit_hint_only"
     assert str(workspace / "Demo") in summary["protected_inputs"]
+
+
+def test_codex_app_server_resolves_codex_bin_from_env(tmp_path, monkeypatch):
+    codex_bin = tmp_path / "codex"
+    codex_bin.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    codex_bin.chmod(0o755)
+    monkeypatch.setenv("CODEX_BIN", str(codex_bin))
+
+    backend = CodexAppServerBackend(
+        FakeAgent(str(tmp_path)),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        codex_factory=lambda: FakeCodex(),
+    )
+
+    assert backend._resolve_codex_bin() == str(codex_bin)
+
+
+def test_codex_app_server_resolves_codex_bin_from_path(tmp_path, monkeypatch):
+    codex_bin = tmp_path / "codex"
+    codex_bin.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    codex_bin.chmod(0o755)
+    monkeypatch.delenv("CODEX_BIN", raising=False)
+    monkeypatch.setenv("PATH", str(tmp_path))
+
+    backend = CodexAppServerBackend(
+        FakeAgent(str(tmp_path)),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        codex_factory=lambda: FakeCodex(),
+    )
+
+    assert backend._resolve_codex_bin() == str(codex_bin)

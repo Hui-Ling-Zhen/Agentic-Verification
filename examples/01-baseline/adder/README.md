@@ -10,7 +10,7 @@
 
 ## 前置条件
 
-- Python 3.11+、`picker`、**Codex CLI**、VeriAgent 依赖
+- Python 3.11+、`picker`、OpenAI Codex binary / app-server SDK、VeriAgent 依赖
 - `OPENAI_API_KEY` / `OPENAI_API_BASE` / `OPENAI_MODEL`（供 Codex 使用）
 
 ## 监督式 Codex 运行

@@ -8,6 +8,7 @@ import os
 import json
 import hashlib
 import datetime as _dt
+import shutil
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
@@ -161,18 +162,66 @@ class CodexAppServerBackend(AgentBackendBase):
         except ImportError as exc:
             raise ImportError(
                 "Codex app-server SDK is required for backend 'codex_app_server'. "
-                "Install the module 'codex_app_server' from your approved package source "
-                "or direct URL, or use a legacy backend only for compatibility."
+                "Install OpenAI Codex open-source SDK from codex/sdk/python "
+                "(package 'openai-codex-app-server-sdk'), for example: "
+                "`pip install -e ../codex/sdk/python`. Legacy `codex exec` is kept "
+                "only for compatibility and does not provide the thread/turn/event contract."
             ) from exc
 
+        codex_bin = self._resolve_codex_bin()
+        self.codex_bin = codex_bin
         app_config = AppServerConfig(
-            codex_bin=self.codex_bin,
+            codex_bin=codex_bin,
             config_overrides=self.config_overrides,
             cwd=self.CWD,
             client_name="veriagent",
             client_title="Agentic-Verification",
         )
         return Codex(config=app_config)
+
+    @staticmethod
+    def _is_executable_file(path: str) -> bool:
+        return os.path.isfile(path) and os.access(path, os.X_OK)
+
+    @classmethod
+    def _resolve_configured_codex_bin(cls, value: str, source: str) -> str:
+        expanded = os.path.abspath(os.path.expanduser(os.path.expandvars(value)))
+        if cls._is_executable_file(expanded):
+            info(f"Using OpenAI Codex binary from {source}: {expanded}")
+            return expanded
+
+        resolved = shutil.which(value)
+        if resolved and cls._is_executable_file(resolved):
+            info(f"Using OpenAI Codex binary from {source}: {resolved}")
+            return resolved
+
+        raise FileNotFoundError(
+            f"Codex binary configured by {source} was not found or is not executable: {value!r}. "
+            "Set CODEX_BIN to the open-source Codex binary path, for example "
+            "`export CODEX_BIN=\"$(which codex)\"` after installing https://github.com/openai/codex."
+        )
+
+    def _resolve_codex_bin(self) -> str:
+        """Resolve the open-source Codex binary used by `codex app-server`."""
+        if self.codex_bin:
+            return self._resolve_configured_codex_bin(str(self.codex_bin), "backend codex_bin")
+
+        env_codex_bin = os.environ.get("CODEX_BIN")
+        if env_codex_bin:
+            return self._resolve_configured_codex_bin(env_codex_bin, "CODEX_BIN")
+
+        path_codex = shutil.which("codex")
+        if path_codex and self._is_executable_file(path_codex):
+            info(f"Using OpenAI Codex binary from PATH: {path_codex}")
+            return path_codex
+
+        raise FileNotFoundError(
+            "Unable to locate the OpenAI Codex binary for `codex app-server`. "
+            "Install https://github.com/openai/codex, ensure `codex` is on PATH, or set "
+            "`CODEX_BIN` explicitly, for example `export CODEX_BIN=\"$(which codex)\"`. "
+            "The legacy `codex exec` backend is not an official replacement because it has "
+            "no structured thread/turn/event contract."
+        )
 
     def _thread_kwargs(self):
         return {
@@ -207,6 +256,7 @@ class CodexAppServerBackend(AgentBackendBase):
         ]
         return {
             "codex_config_file": self.CODEX_CONFIG_FILE or os.path.join(cwd, ".codex", "config.toml"),
+            "codex_bin": self.codex_bin,
             "sandbox_mode": self.sandbox or "workspace-write",
             "network_access": self.codex_network_access,
             "writable_roots": [cwd],

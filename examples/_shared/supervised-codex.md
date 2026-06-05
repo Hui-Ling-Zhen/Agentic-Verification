@@ -50,14 +50,15 @@ Formal 另加：`--use-skill`、`--guid-doc-path ...`、`--output formal_test`�
 
 ## 前置条件
 
-1. 已安装 [Codex CLI](https://github.com/openai/codex) 且 `codex` 在 `PATH` 中。
-2. 配置模型（写入 `~/.veriagent_env` 或环境变量，供 Codex 渲染配置使用）：
+1. 已安装 [OpenAI Codex](https://github.com/openai/codex) 且 `codex` 在 `PATH` 中，或通过 `CODEX_BIN` 指定。
+2. 已安装 OpenAI Codex 开源 SDK：`codex/sdk/python` / package `openai-codex-app-server-sdk`，可 `import codex_app_server`。
+3. 配置模型（写入 `~/.veriagent_env` 或环境变量，供 Codex 渲染配置使用）：
    ```bash
    export OPENAI_API_KEY=...
    export OPENAI_API_BASE=https://你的端点/v1
    export OPENAI_MODEL=...
    ```
-3. 已完成 `make init_<DUT>` 或对应 example 的 `make quick` / `formal_init_*`。
+4. 已完成 `make init_<DUT>` 或对应 example 的 `make quick` / `formal_init_*`。
 
 ## 仓库根目录 Make
 

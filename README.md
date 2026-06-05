@@ -27,9 +27,9 @@ This is why the official path is a two-layer runtime: Codex performs the inner r
 ## Requirements
 
 - Python 3.11+, Linux / macOS, 4GB+ RAM
-- [Codex CLI](https://github.com/openai/codex) executable on `PATH`
+- [OpenAI Codex](https://github.com/openai/codex) executable on `PATH` or exported via `CODEX_BIN`
 - MCP Python package (`mcp`) installed by `requirements.txt`
-- Codex app-server Python SDK importable as `codex_app_server`. This SDK is not available from the public PyPI index under that name; install it from your approved package source or direct URL before using `--backend=codex_app_server`.
+- OpenAI Codex open-source SDK: `codex/sdk/python` / package `openai-codex-app-server-sdk`, importable as `codex_app_server`
 - [picker](https://github.com/XS-MLVP/picker)
 - OpenAI-compatible endpoint for Codex:
 
@@ -47,8 +47,9 @@ export OPENAI_MODEL=...
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
 pip3 install -e .
-# Then install the Codex app-server SDK from your approved package source:
-# pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+git clone https://github.com/openai/codex ../codex
+pip3 install -e ../codex/sdk/python
+export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
 picker --version
@@ -146,7 +147,7 @@ Agentic-Verification/
 | Path | Status |
 |------|--------|
 | Supervised Codex SDK (`--backend=codex_app_server`, MCP, `--loop`) | **Official / tested** |
-| Codex CLI (`--backend=codex`) | Legacy fallback; opaque `codex exec` path |
+| Codex CLI (`--backend=codex`) | Legacy fallback; opaque `codex exec` path without the SDK thread/turn/event contract |
 | `langchain` / API-only backend | Legacy, not maintained for this repo |
 | Passive MCP (no `--loop`) | Legacy, not the product path |
 

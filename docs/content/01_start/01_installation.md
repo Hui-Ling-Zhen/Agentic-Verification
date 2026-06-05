@@ -8,8 +8,8 @@
 - 内存：建议 4GB+
 - 依赖：
   - [picker](https://github.com/XS-MLVP/picker)（将 Verilog DUT 导出为 Python 包）
-  - [Codex CLI](https://github.com/openai/codex)（`codex` 可执行文件在 `PATH` 中）
-  - Codex app-server Python SDK（可 `import codex_app_server`，从团队批准的包源或 direct URL 安装）
+  - [OpenAI Codex](https://github.com/openai/codex)（`codex` 可执行文件在 `PATH` 中，或通过 `CODEX_BIN` 指定）
+  - OpenAI Codex 开源 SDK：`codex/sdk/python` / package `openai-codex-app-server-sdk`，可 `import codex_app_server`
   - MCP Python 包（`mcp`，由 `pip install .` / `requirements.txt` 安装）
 
 
@@ -21,14 +21,17 @@
   git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
   cd Agentic-Verification
   pip3 install -e .
-  # 安装 Codex app-server SDK（按团队发布流程提供的 pinned requirement）
-  pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+  git clone https://github.com/openai/codex ../codex
+  pip3 install -e ../codex/sdk/python
+  export CODEX_BIN="$(which codex)"
   ```
 
 - 方式二（pip 安装）
   ```bash
   pip3 install git+https://github.com/Hui-Ling-Zhen/Agentic-Verification
-  pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+  git clone https://github.com/openai/codex ../codex
+  pip3 install -e ../codex/sdk/python
+  export CODEX_BIN="$(which codex)"
   veriagent --help # 确认安装成功
   ```
 

@@ -4,7 +4,8 @@ FROM ghcr.io/xs-mlvp/picker:latest
 
 # The picker base image already provides Node.js, npm, Python 3.11, and pip.
 USER root
-ARG CODEX_APP_SERVER_PACKAGE=""
+ARG OPENAI_CODEX_REPO="https://github.com/openai/codex"
+ARG OPENAI_CODEX_REF="main"
 RUN node --version && \
     npm --version && \
     python3 --version && \
@@ -24,17 +25,14 @@ COPY examples/05-formal/requirements.txt ./requirements-formal.txt
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/workspace/VeriAgent
+    PYTHONPATH=/workspace/VeriAgent \
+    CODEX_BIN=/usr/local/bin/codex
 
-# Install VeriAgent and dependencies into the image.
+# Install VeriAgent, dependencies, and the OpenAI Codex app-server SDK.
 RUN python3 -m pip install . && \
-    if [ -n "$CODEX_APP_SERVER_PACKAGE" ]; then \
-      echo "Installing Codex app-server SDK from CODEX_APP_SERVER_PACKAGE"; \
-      python3 -m pip install "$CODEX_APP_SERVER_PACKAGE"; \
-      python3 -c "import codex_app_server; print('ok: codex_app_server import')"; \
-    else \
-      echo "CODEX_APP_SERVER_PACKAGE is empty; skipping private Codex app-server SDK install"; \
-    fi && \
+    git clone --depth 1 --branch "$OPENAI_CODEX_REF" "$OPENAI_CODEX_REPO" /opt/openai-codex && \
+    python3 -m pip install -e /opt/openai-codex/sdk/python && \
+    python3 -c "import codex_app_server; print('ok: codex_app_server import')" && \
     python3 -m pip install -r requirements-formal.txt && \
     node --version && npm --version && python3 --version && veriagent --check
 

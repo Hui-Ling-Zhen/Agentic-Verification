@@ -34,6 +34,7 @@ CSV_FIELDS = [
     "codex_mcp_tool_calls",
     "codex_file_changes",
     "codex_failure_reason",
+    "codex_bin",
     "sandbox_mode",
     "network_access",
     "policy_enforcement",

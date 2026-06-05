@@ -11,9 +11,9 @@ veriagent + --config examples/.../workflow/*.yaml + --backend=codex_app_server +
 ## 前置条件
 
 - Python 3.11+
-- 已安装 Codex CLI，并且 `codex` 在 `PATH` 中
+- 已安装 OpenAI Codex，并且 `codex` 在 `PATH` 中，或通过 `CODEX_BIN` 指定
 - 已安装 MCP Python 包（`mcp`）
-- 已安装 Codex app-server Python SDK，并可 `import codex_app_server`。该 SDK 目前不能通过公开 PyPI 的 `codex_app_server` 包名安装，请从批准的包源或 direct URL 安装。
+- 已安装 OpenAI Codex 开源 SDK：`codex/sdk/python` / package `openai-codex-app-server-sdk`，并可 `import codex_app_server`
 - 已安装 `picker`
 - 已配置 OpenAI-compatible 模型端点：
 
@@ -31,8 +31,9 @@ export OPENAI_MODEL=...
 git clone https://github.com/Hui-Ling-Zhen/Agentic-Verification.git
 cd Agentic-Verification
 pip3 install -e .
-# 然后从批准的包源安装 Codex app-server SDK：
-# pip3 install "${CODEX_APP_SERVER_PACKAGE}"
+git clone https://github.com/openai/codex ../codex
+pip3 install -e ../codex/sdk/python
+export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server; print('ok: codex_app_server')"
 codex --version
 picker --version

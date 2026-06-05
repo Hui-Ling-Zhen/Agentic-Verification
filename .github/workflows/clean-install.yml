@@ -23,12 +23,6 @@ jobs:
           python -m pip install .
           python -m pip install pytest
 
-      - name: Optionally install Codex app-server SDK
-        if: ${{ env.CODEX_APP_SERVER_PACKAGE != '' }}
-        run: |
-          echo "Installing Codex app-server SDK from CODEX_APP_SERVER_PACKAGE"
-          python -m pip install "${CODEX_APP_SERVER_PACKAGE}"
-
       - name: Smoke import and CLI
         run: |
           python -c "from veriagent.abackend.codex_sdk import CodexAppServerBackend; print(CodexAppServerBackend.__name__)"
@@ -40,9 +34,10 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           text = Path("requirements-codex-sdk.txt").read_text()
-          assert "CODEX_APP_SERVER_PACKAGE" in text
-          assert "approved private index or direct URL" in text
-          print("ok: Codex SDK package source documented")
+          assert "https://github.com/openai/codex" in text
+          assert "openai-codex-app-server-sdk" in text
+          assert "codex/sdk/python" in text
+          print("ok: OpenAI Codex SDK source documented")
           PY
 
       - name: Validate example workflow config
@@ -62,7 +57,3 @@ jobs:
             tests/test_codex_sdk_backend.py \
             tests/test_benchmark_manifest.py
 
-      - name: Validate optional Codex SDK module
-        if: ${{ env.CODEX_APP_SERVER_PACKAGE != '' }}
-        run: |
-          python -c "import codex_app_server; print('ok: codex_app_server import')"

@@ -27,6 +27,7 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
         is_agent_exit=False,
         policy={
             "codex_config_file": str(tmp_path / ".codex" / "config.toml"),
+            "codex_bin": "/usr/local/bin/codex",
             "sandbox_mode": "workspace-write",
             "network_access": "disabled",
             "writable_roots": [str(tmp_path)],
@@ -39,6 +40,7 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
 
     assert manifest["schema_version"] == "3"
     assert manifest["sandbox_mode"] == "workspace-write"
+    assert manifest["codex_bin"] == "/usr/local/bin/codex"
     assert manifest["network_access"] == "disabled"
     assert manifest["writable_roots"] == [str(tmp_path)]
     assert manifest["protected_inputs"] == [str(tmp_path / "Demo")]

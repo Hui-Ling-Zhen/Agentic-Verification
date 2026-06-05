@@ -92,6 +92,7 @@ def build_run_manifest(
     policy_data = policy or {}
     manifest.update({
         "codex_config_file": policy_data.get("codex_config_file"),
+        "codex_bin": policy_data.get("codex_bin"),
         "sandbox_mode": policy_data.get("sandbox_mode"),
         "network_access": policy_data.get("network_access"),
         "writable_roots": policy_data.get("writable_roots", []),

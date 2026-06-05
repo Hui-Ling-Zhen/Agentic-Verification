@@ -1,14 +1,20 @@
-# Codex app-server SDK dependency
+# OpenAI Codex app-server SDK dependency
 #
 # The default backend imports this Python module:
 #
 #   from codex_app_server import AppServerConfig, Codex
 #
-# Public PyPI does not currently expose a distribution named `codex_app_server`.
-# Install the SDK from your approved private index or direct URL before running
-# `--backend=codex_app_server`, for example:
+# The module is provided by the OpenAI Codex open-source SDK:
 #
-#   pip install "${CODEX_APP_SERVER_PACKAGE}"
+#   https://github.com/openai/codex
+#   package: openai-codex-app-server-sdk
+#   source:  codex/sdk/python
 #
-# where CODEX_APP_SERVER_PACKAGE is a pinned requirement from your release
-# process, such as a private-index package/version or a direct URL.
+# Local editable install used by Agentic-Verification:
+#
+#   git clone https://github.com/openai/codex ../codex
+#   pip install -e ../codex/sdk/python
+#   export CODEX_BIN="$(which codex)"
+#
+# Keep `--backend=codex` / `codex exec` as legacy only. It does not provide the
+# app-server thread/turn/event contract that VeriAgent records in manifests.

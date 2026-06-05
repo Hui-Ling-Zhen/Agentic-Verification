@@ -190,4 +190,4 @@ python -c "from veriagent.abackend.codex_sdk import CodexAppServerBackend"
 veriagent --help
 ```
 
-如果要运行官方路径，还需要先确保 `codex_app_server` Python SDK 可 import。
+如果要运行官方路径，还需要先从 OpenAI Codex 开源仓库安装 `codex/sdk/python`（package `openai-codex-app-server-sdk`），确保 `codex_app_server` Python SDK 可 import，并设置 `CODEX_BIN` 指向 `codex` binary。

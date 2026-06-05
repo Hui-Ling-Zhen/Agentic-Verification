@@ -37,10 +37,12 @@ veriagent output/workspace_Adder/ Adder \
 
 ## `codex_app_server` import 失败怎么办？
 
-公开 PyPI 当前没有 `codex_app_server` 这个发行包名。请从团队批准的包源或 direct URL 安装 Codex app-server Python SDK，例如：
+官方路径使用 OpenAI Codex 开源 SDK：`codex/sdk/python` / package `openai-codex-app-server-sdk`。从本地开源 Codex 仓库安装，例如：
 
 ```bash
-pip install "${CODEX_APP_SERVER_PACKAGE}"
+git clone https://github.com/openai/codex ../codex
+pip install -e ../codex/sdk/python
+export CODEX_BIN="$(which codex)"
 python -c "import codex_app_server"
 ```
 
