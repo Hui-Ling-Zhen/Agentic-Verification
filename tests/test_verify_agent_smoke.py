@@ -1,4 +1,5 @@
 import sys
+import json
 from types import ModuleType
 
 
@@ -97,6 +98,11 @@ stage:
     assert fake_backend.inited is True
     assert "Adder" in agent.cfg.un_write_dirs
     assert "Adder_RTL" in agent.cfg.un_write_dirs
+    manifest = workspace / ".veriagent" / "run_manifest.json"
+    assert manifest.exists()
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    assert data["run_status"] == "initialized"
+    assert data["backend_status"] == "official"
 
 
 def test_official_codex_path_starts_mcp_before_backend(monkeypatch):

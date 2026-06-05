@@ -26,6 +26,8 @@ Example fields:
 | `codex_failure_reason` | Reason for non-completed turns |
 | `codex_event_log` | Path to `.veriagent/codex_events.jsonl` |
 | `codex_approval_requests` | Approval requests intercepted by VeriAgent |
+| `backend_status` / `backend_legacy` | Whether the run used the official SDK backend or compatibility-only backend |
+| `run_status` | Latest lifecycle checkpoint, e.g. `starting`, `initialized`, `codex_turn_completed`, or failure/interruption status |
 | `codex_config_file` | Rendered `.codex/config.toml` used by the SDK backend |
 | `codex_bin` | OpenAI Codex binary resolved from `CODEX_BIN` or `PATH` |
 | `codex_metadata` | Codex app-server initialize metadata when available |

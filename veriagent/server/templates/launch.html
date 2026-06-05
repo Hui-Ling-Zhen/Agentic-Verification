@@ -232,10 +232,10 @@
           <label>Backend</label>
           <select id="backend"></select>
           <details id="legacy-backend-panel" class="stage-note">
-            <summary>Advanced / Legacy backends</summary>
+            <summary>Compatibility Only backends</summary>
             <label class="switch">
               <input type="checkbox" id="show-legacy-backends">
-              Show legacy backends without Codex SDK turn/event observability
+              Show compatibility-only backends without Codex SDK turn/event/manifest contract
             </label>
           </details>
         </div>
@@ -337,6 +337,7 @@ const state = {
   configOptions: [],
   backendOptions: [],
   backendKeyName: '',
+  officialContract: null,
   showLegacyBackends: false,
   lastBackendValue: '',
   launchModes: [],
@@ -478,6 +479,20 @@ function syncBackendMcpFileToolsOption() {
   }
 }
 
+function applyOfficialContract(options) {
+  const backend = document.getElementById('backend')?.value.trim() || '';
+  const contract = state.officialContract || {};
+  if (backend !== (contract.backend || 'codex_app_server')) return options;
+  const next = { ...options };
+  if (contract.loop_required) next.loop = true;
+  if (contract.mcp_server_no_file_tools_required) next.mcp_server_no_file_tools = true;
+  if (contract.mcp_server_forbidden) next.mcp_server = false;
+  if (contract.break_or_tui_required && !next.human && !next.tui) {
+    next.human = true;
+  }
+  return next;
+}
+
 function getExtraArgsField() {
   return document.querySelector('[data-launch-key="extra_args"]');
 }
@@ -586,7 +601,7 @@ function collectDynamicLaunchOptions() {
   if (!options.use_skill) {
     options.extra_skill_path = '';
   }
-  return options;
+  return applyOfficialContract(options);
 }
 
 function formatTimestamp(value) {
@@ -1613,8 +1628,9 @@ function isLegacyBackend(value) {
 function confirmLegacyBackendSelection(value) {
   if (!isLegacyBackend(value)) return true;
   return window.confirm(
-    `Backend "${value}" is marked legacy. It does not provide the Codex SDK ` +
-    `thread/turn/event contract, so run_manifest and supervision may be incomplete.\n\n` +
+    `Backend "${value}" is compatibility-only. It does not provide the Codex SDK ` +
+    `thread/turn/event/manifest contract, so benchmark results are not comparable ` +
+    `with official supervised Codex runs.\n\n` +
     `Use codex_app_server for the official supervised path. Continue with legacy backend?`
   );
 }
@@ -1632,7 +1648,7 @@ function renderBackendSelect() {
     parts.push(`</optgroup>`);
   }
   if (state.showLegacyBackends && legacy.length) {
-    parts.push(`<optgroup label="Advanced / Legacy">`);
+    parts.push(`<optgroup label="Compatibility Only">`);
     parts.push(...legacy.map((opt) => `<option value="${esc(opt.value)}" data-legacy="true">${esc(opt.name)} (${esc(opt.status || 'legacy')})</option>`));
     parts.push(`</optgroup>`);
   }
@@ -1716,6 +1732,7 @@ async function initPage() {
     state.launchConfig = configData.default_args || {};
     state.backendOptions = configData.backend_options || [];
     state.backendKeyName = configData.backend_key_name || '';
+    state.officialContract = configData.official_contract || null;
     state.showLegacyBackends = isLegacyBackend(state.backendKeyName) || isLegacyBackend(state.launchConfig?.backend);
     state.launchModes = configData.launch_modes || [];
     state.defaultLaunchMode = configData.default_launch_mode || 'process';

@@ -379,6 +379,7 @@ class VerifyAgent:
         self._exit_on_completion_queued = False
         self._is_work_busy = False
         self._last_backend_turn_result = {}
+        self._run_manifest_status = "starting"
         self.handle_sigint()
 
         # Initialize interaction logic based on mode
@@ -432,11 +433,13 @@ class VerifyAgent:
             ),
             loop_alive_time=self.cfg.loop_settings.loop_alive_time,
         )
+        self._update_run_manifest_safely("starting")
         self._ensure_official_codex_mcp_server()
         self.backend.init()
         self.backend.set_debug(debug)
         self.set_tool_call_time_out(self.cfg.get_value("call_time_out", 300))
         self.stage_manager.init_stage()
+        self._update_run_manifest_safely("initialized")
         # Telemetry
         self.session_id = uuid4()
         langfuse_cfg = self.cfg.get_value("langfuse", {})
@@ -454,6 +457,16 @@ class VerifyAgent:
                 "Can't connect to langfuse, please check your configuration"
             )
             self.langfuse_handler = CallbackHandler()
+
+    def _update_run_manifest_safely(self, status: str | None = None):
+        if status:
+            self._run_manifest_status = status
+        try:
+            from veriagent.util.benchmark import update_run_manifest_from_agent
+            return update_run_manifest_from_agent(self, self.stage_manager)
+        except Exception as exc:
+            warning(f"Failed to update run_manifest.json: {exc}")
+            return None
 
     def _ensure_official_codex_mcp_server(self):
         """Start verification-only MCP before the Codex app-server backend connects."""

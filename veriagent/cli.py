@@ -32,6 +32,7 @@ if parent_dir not in sys.path:
 os.environ['PYTHONPYCACHEPREFIX'] = os.path.join(os.path.expanduser('~'), ".veriagent/__pycache__")
 
 from veriagent.version import __version__
+from veriagent.runtime_contract import OFFICIAL_BACKEND
 
 def info(*k, **w):
     print(*k, **w)
@@ -317,25 +318,9 @@ def _require_workflow_config(args) -> None:
 
 def _validate_official_codex_app_server_path(args) -> None:
     """Fail fast when the official backend is launched without supervisor semantics."""
-    if args.emulate_config or getattr(args, "as_master", None) is not None:
-        return
+    from veriagent.runtime_contract import official_launch_args_string, validate_official_cli_args
 
-    effective_backend = (args.override or {}).get("backend.key_name") or args.backend or "codex_app_server"
-    if effective_backend != "codex_app_server":
-        return
-
-    errors = []
-    if args.config is None:
-        errors.append("--config examples/.../workflow/*.yaml")
-    if not args.loop:
-        errors.append("--loop")
-    if not args.mcp_server_no_file_tools:
-        errors.append("--mcp-server-no-file-tools")
-    if args.mcp_server:
-        errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
-    if not (args.human or args.tui):
-        errors.append("-hm/--human or --tui")
-
+    errors = validate_official_cli_args(args)
     if not errors:
         return
 
@@ -345,8 +330,7 @@ def _validate_official_codex_app_server_path(args) -> None:
         "Required ordinary-run shape:\n"
         "  veriagent {WORKSPACE}/ {DUT} \\\n"
         "    --config examples/.../workflow/*.yaml \\\n"
-        "    --mcp-server-no-file-tools -s -hm --tui --loop \\\n"
-        "    --backend=codex_app_server\n"
+        f"    {official_launch_args_string()}\n"
         "Missing or invalid argument(s): " + ", ".join(errors)
     )
     sys.exit(1)
@@ -1183,8 +1167,6 @@ def run() -> None:
         mcp_cmd = "start_mcp_server"
     if args.mcp_server_no_file_tools:
         mcp_cmd = "start_mcp_server_no_file_ops"
-    if mcp_cmd is not None:
-        init_cmds += [f"{mcp_cmd} {args.mcp_server_host} {args.mcp_server_port}"]
     if args.mcp_server_port is not None:
         args.override = args.override or {}
         args.override["mcp_server.port"] = args.mcp_server_port
@@ -1205,6 +1187,10 @@ def run() -> None:
         args.override["backend.key_name"] = args.backend
     if args.resume_codex_thread:
         args.override["backend.codex_app_server.args.resume_codex_thread"] = True
+
+    effective_backend = args.override.get("backend.key_name") or args.backend or OFFICIAL_BACKEND
+    if mcp_cmd is not None and effective_backend != OFFICIAL_BACKEND:
+        init_cmds += [f"{mcp_cmd} {args.mcp_server_host} {args.mcp_server_port}"]
 
     if args.extra_skill_path and not args.use_skill:
         raise ValueError("--extra-skill-path requires --use-skill is True")

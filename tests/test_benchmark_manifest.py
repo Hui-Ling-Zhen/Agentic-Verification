@@ -17,6 +17,8 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
         workflow_config="examples/01-baseline/workflow/default.yaml",
         backend="codex_app_server",
         backend_class="veriagent.abackend.codex_sdk.CodexAppServerBackend",
+        backend_status="official",
+        backend_legacy=False,
         version="test",
         seed=None,
         stage_index=0,
@@ -25,6 +27,7 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
         time_end=None,
         stages_info={},
         is_agent_exit=False,
+        run_status="starting",
         policy={
             "codex_config_file": str(tmp_path / ".codex" / "config.toml"),
             "codex_bin": "/usr/local/bin/codex",
@@ -43,6 +46,9 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
     )
 
     assert manifest["schema_version"] == "3"
+    assert manifest["backend_status"] == "official"
+    assert manifest["backend_legacy"] is False
+    assert manifest["run_status"] == "starting"
     assert manifest["sandbox_mode"] == "workspace-write"
     assert manifest["codex_bin"] == "/usr/local/bin/codex"
     assert manifest["codex_metadata"]["serverInfo"]["version"] == "test"

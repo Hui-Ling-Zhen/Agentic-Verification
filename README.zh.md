@@ -10,7 +10,7 @@
 
 **Runtime（VeriAgent）** 负责阶段机、Checker、MCP 验证工具与监督循环；**Codex** 负责每轮读 RTL、写测试与复杂代码修改。
 
-**官方验证路径 = 监督式 Codex SDK**（`--backend=codex_app_server` + MCP + `--loop`）。其它 backend（`codex` CLI、`langchain`、纯 MCP 无 loop 等）为 **legacy / 未在本仓库测试**。
+**官方验证路径 = 监督式 Codex SDK**（`--backend=codex_app_server` + MCP + `--loop`）。其它 backend（`codex` CLI、`langchain`、纯 MCP 无 loop 等）为 **compatibility-only legacy**。
 
 Workflow **外置**于 `examples/*/workflow/`，必须通过 **`--config`** 显式传入。见 [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md)。
 
@@ -88,7 +88,7 @@ veriagent output/workspace_Adder/ Adder \
 
 ## 可度量产出（Benchmark）
 
-每次运行在 workspace 下写入 `.veriagent/run_manifest.json`（DUT、workflow、阶段进度、耗时、最后一个 Codex thread/turn、token、MCP tool 次数、文件变更数、失败原因）。SDK 事件追加到 `.veriagent/codex_events.jsonl`。汇总：
+每次运行在 workspace 下启动即写入 `.veriagent/run_manifest.json`，随后在 backend/stage 初始化、每个 Codex turn 之后、stage 保存时继续更新。manifest 记录 backend 状态（`official` 或 compatibility-only `legacy`）、run 状态、DUT、workflow、阶段进度、耗时、最后一个 Codex thread/turn、token、MCP tool 次数、文件变更数、失败原因与 sandbox/policy 审计字段。SDK 事件追加到 `.veriagent/codex_events.jsonl`。汇总：
 
 ```bash
 make benchmark   # → benchmark/summary.csv、benchmark/runs.json
@@ -103,9 +103,9 @@ make benchmark   # → benchmark/summary.csv、benchmark/runs.json
 | 路径 | 状态 |
 |------|------|
 | 监督式 Codex SDK（`--backend=codex_app_server` + MCP + `--loop`） | **官方 / 已测试** |
-| Codex CLI（`--backend=codex`） | Legacy fallback，黑盒 `codex exec` 路径，不提供 SDK thread/turn/event 契约 |
-| `langchain` / 纯 API | Legacy，本仓库未持续维护 |
-| 被动 MCP（无 `--loop`） | Legacy |
+| Codex CLI（`--backend=codex`） | Compatibility-only legacy fallback，黑盒 `codex exec` 路径，不提供 SDK thread/turn/event/manifest 契约 |
+| `langchain` / 纯 API | Compatibility-only legacy，本仓库不作为 benchmark 对比路径维护 |
+| 被动 MCP（无 `--loop`） | Compatibility-only legacy |
 
 ---
 

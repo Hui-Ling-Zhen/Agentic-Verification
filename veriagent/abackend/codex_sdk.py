@@ -567,7 +567,14 @@ class CodexAppServerBackend(AgentBackendBase):
             reason = "Codex turn ended without a turn_completed event"
             self._failure_reason = None if status == TURN_STATUS_INTERRUPTED else reason
             self._last_turn = self._build_turn_summary(status, reason)
+        self._update_manifest_after_turn()
         return self._last_turn
+
+    def _update_manifest_after_turn(self):
+        status = self._last_turn.get("status") or "unknown"
+        updater = getattr(self.vagent, "_update_run_manifest_safely", None)
+        if callable(updater):
+            updater(f"codex_turn_{status}")
 
     def stream_events(self, turn_handle=None):
         return iter(self._events)

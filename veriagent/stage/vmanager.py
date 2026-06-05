@@ -866,8 +866,11 @@ class StageManager(object):
         info["is_wait_human_check"] = is_wait_human_check
         fc.save_veriagent_info(self.workspace, info)
         try:
-            from veriagent.util.benchmark import update_run_manifest_from_agent
-            update_run_manifest_from_agent(self.agent, self)
+            if hasattr(self.agent, "_update_run_manifest_safely"):
+                self.agent._update_run_manifest_safely("stage_saved")
+            else:
+                from veriagent.util.benchmark import update_run_manifest_from_agent
+                update_run_manifest_from_agent(self.agent, self)
         except Exception as exc:
             warning(f"Failed to update run_manifest.json: {exc}")
 

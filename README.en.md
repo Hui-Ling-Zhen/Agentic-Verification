@@ -10,7 +10,7 @@ LLM-powered **Agentic Verification** for hardware — CLI **`veriagent`**
 
 **VeriAgent runtime** owns the stage machine, Checkers, MCP verification tools, and the supervised loop. **Codex** handles each round of RTL reading, test writing, and complex edits.
 
-**Official verification path = supervised Codex SDK** (`--backend=codex_app_server` + MCP + `--loop`). Other backends (`codex` CLI, `langchain`, passive MCP-only, etc.) are **legacy / untested** in this repo.
+**Official verification path = supervised Codex SDK** (`--backend=codex_app_server` + MCP + `--loop`). Other backends (`codex` CLI, `langchain`, passive MCP-only, etc.) are **compatibility-only legacy** in this repo.
 
 Workflow YAML is **externalized** under `examples/*/workflow/` — pass it with **`--config`** (required). See [`examples/_shared/supervised-codex.md`](/examples/_shared/supervised-codex.md).
 
@@ -83,7 +83,7 @@ veriagent output/workspace_Adder/ Adder \
 
 ## Benchmark
 
-Each run writes `.veriagent/run_manifest.json` (DUT, workflow, stages, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason, and sandbox/policy audit fields). SDK events are appended to `.veriagent/codex_events.jsonl`. Aggregate with:
+Each run writes `.veriagent/run_manifest.json` as soon as the runtime starts, then updates it after backend/stage initialization, each Codex turn, and stage saves. It records backend status (`official` vs compatibility-only `legacy`), run status, stages, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason, and sandbox/policy audit fields. SDK events are appended to `.veriagent/codex_events.jsonl`. Aggregate with:
 
 ```bash
 make benchmark   # → benchmark/summary.csv, benchmark/runs.json
@@ -98,9 +98,9 @@ See [benchmark/README.md](/benchmark/README.md).
 | Path | Status |
 |------|--------|
 | Supervised Codex SDK (`--backend=codex_app_server`, MCP, `--loop`) | **Official / tested** |
-| Codex CLI (`--backend=codex`) | Legacy fallback; opaque `codex exec` path without the SDK thread/turn/event contract |
-| `langchain` / API-only | Legacy, not maintained here |
-| Passive MCP (no `--loop`) | Legacy |
+| Codex CLI (`--backend=codex`) | Compatibility-only legacy fallback; opaque `codex exec` path without the SDK thread/turn/event/manifest contract |
+| `langchain` / API-only | Compatibility-only legacy path, not maintained for benchmark comparison |
+| Passive MCP (no `--loop`) | Compatibility-only legacy path |
 
 ---
 

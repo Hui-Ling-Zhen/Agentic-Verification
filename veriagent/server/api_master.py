@@ -47,6 +47,7 @@ except ImportError:  # pragma: no cover - optional dependency checked at runtime
 from veriagent.util.config import get_config
 from veriagent.util.functions import find_available_port, get_abs_path_cwd_veriagent, is_port_free
 from veriagent.util.log import echo_g, warning
+from veriagent.runtime_contract import OFFICIAL_BACKEND, OFFICIAL_SUPERVISED_CODEX_CONTRACT
 
 if TYPE_CHECKING:
     from veriagent.verify_pdb import VerifyPDB
@@ -326,6 +327,23 @@ def _normalize_launch_mode(value: Any) -> str:
             f"Unsupported launch_mode '{value}'. Supported values: {', '.join(_LAUNCH_MODES)}"
         )
     return mode
+
+
+def _validate_official_launch_request(req: Dict[str, Any]) -> List[str]:
+    if str(req.get("backend") or OFFICIAL_BACKEND) != OFFICIAL_BACKEND:
+        return []
+    errors: List[str] = []
+    if not str(req.get("config") or "").strip():
+        errors.append("--config examples/.../workflow/*.yaml")
+    if not bool(req.get("loop")):
+        errors.append("--loop")
+    if not bool(req.get("mcp_server_no_file_tools")):
+        errors.append("--mcp-server-no-file-tools")
+    if bool(req.get("mcp_server")):
+        errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
+    if not (bool(req.get("human")) or bool(req.get("tui"))):
+        errors.append("-hm/--human or --tui")
+    return errors
 
 
 def _normalize_launch_mode_list(value: Any) -> List[str]:
@@ -3099,6 +3117,12 @@ class PdbMasterApiServer:
         current_config = str(req.get("config") or "").strip()
         if compiled_config and (not current_config or current_config == os.path.basename(compiled_config)):
             req["config"] = compiled_config
+        contract_errors = _validate_official_launch_request(req)
+        if contract_errors:
+            raise ValueError(
+                "Official codex_app_server launch contract is not satisfied: "
+                + ", ".join(contract_errors)
+            )
 
         cmd_api_host, cmd_api_port, cmd_api_password = _parse_service_spec(
             req.get("export_cmd_api", ""),
@@ -3895,6 +3919,7 @@ class PdbMasterApiServer:
                             "value": key,
                             "legacy": legacy,
                             "status": status,
+                            "compatibility_only": legacy,
                         })
             launch_modes = self._launch_mode_options()
             enabled_launch_modes = self._enabled_launch_modes()
@@ -3918,6 +3943,7 @@ class PdbMasterApiServer:
                 "default_args": default_args,
                 "backend_key_name": backend_key_name,
                 "backend_options": backend_options,
+                "official_contract": OFFICIAL_SUPERVISED_CODEX_CONTRACT,
                 "launch_modes": launch_modes,
                 "default_launch_mode": default_launch_mode,
                 "cluster": self._launch_cluster_config(),

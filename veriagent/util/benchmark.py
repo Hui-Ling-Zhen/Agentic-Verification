@@ -8,6 +8,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 from veriagent.util.functions import get_abs_path_cwd_veriagent, load_json_file, save_json_file
+from veriagent.runtime_contract import backend_status_from_config
 
 MANIFEST_SCHEMA_VERSION = "3"
 MANIFEST_FILENAME = "run_manifest.json"
@@ -38,6 +39,8 @@ def build_run_manifest(
     workflow_config: Optional[str],
     backend: str,
     backend_class: Optional[str],
+    backend_status: str,
+    backend_legacy: bool,
     version: str,
     seed: Optional[int],
     stage_index: int,
@@ -49,6 +52,7 @@ def build_run_manifest(
     last_turn: Optional[Dict[str, Any]] = None,
     policy: Optional[Dict[str, Any]] = None,
     previous: Optional[Dict[str, Any]] = None,
+    run_status: Optional[str] = None,
 ) -> Dict[str, Any]:
     prev = previous or {}
     counts = _count_stages(stages_info if isinstance(stages_info, dict) else {})
@@ -64,11 +68,14 @@ def build_run_manifest(
         "workflow_config": workflow_config,
         "backend": backend,
         "backend_class": backend_class,
+        "backend_status": backend_status,
+        "backend_legacy": bool(backend_legacy),
         "version": version,
         "seed": seed,
         "stage_index": stage_index,
         "all_completed": bool(all_completed),
         "is_agent_exit": bool(is_agent_exit),
+        "run_status": run_status or prev.get("run_status") or "unknown",
         "stages_total": counts["total"],
         "stages_passed": counts["passed"],
         "stages_skipped": counts["skipped"],
@@ -145,6 +152,7 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         backend_class = agent.backend.__class__.__module__ + "." + agent.backend.__class__.__name__
     except Exception:
         pass
+    backend_status, backend_legacy = backend_status_from_config(getattr(agent, "cfg", None), backend)
     last_turn = {}
     try:
         last_turn = agent.backend.last_turn_summary()
@@ -173,6 +181,8 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         workflow_config=getattr(agent, "config_file", None),
         backend=backend,
         backend_class=backend_class,
+        backend_status=backend_status,
+        backend_legacy=backend_legacy,
         version=getattr(agent, "__version__", ""),
         seed=getattr(agent, "seed", None),
         stage_index=getattr(stage_manager, "stage_index", 0),
@@ -184,6 +194,7 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         last_turn=last_turn,
         policy=policy,
         previous=previous,
+        run_status=getattr(agent, "_run_manifest_status", None),
     )
     return save_run_manifest(agent.workspace, manifest)
 

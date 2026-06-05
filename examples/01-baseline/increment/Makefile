@@ -1,8 +1,10 @@
 # Increment — Adder 增量验证
 
 ROOT := ../..
+REPO_ROOT := ../../..
 BASELINE_OUT := ../output
 INC_CONFIG := $(ROOT)/examples/01-baseline/workflow/inc.yaml
+VERIAGENT_SUPERVISED_CODEX := $(shell PYTHONPATH=$(abspath $(REPO_ROOT)) python3 -c "from veriagent.runtime_contract import official_launch_args_string; print(official_launch_args_string())")
 
 VERIAGENT_PY := $(wildcard $(ROOT)/veriagent.py)
 ifdef VERIAGENT_PY
@@ -34,7 +36,7 @@ init_workspace:
 
 init: init_workspace
 	$(CMD) output/workspace_Adder/ Adder --config $(INC_CONFIG) \
-		--mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+		$(VERIAGENT_SUPERVISED_CODEX) \
 		--no-embed-tools $(ARGS)
 
 diff:

@@ -36,8 +36,8 @@ define resolve_workflow_cfg
 $(if $(CFG),$(CFG),$(call dut_workflow_cfg,$1))
 endef
 
-# Supervised Codex SDK: VeriAgent runtime + Codex app-server thread/turn events
-VERIAGENT_SUPERVISED_CODEX := --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+# Supervised Codex SDK contract: single source is veriagent.runtime_contract.
+VERIAGENT_SUPERVISED_CODEX := $(shell PYTHONPATH=$(CURDIR) python3 -c "from veriagent.runtime_contract import official_launch_args_string; print(official_launch_args_string())")
 SWARM_IMAGE ?= ghcr.nju.edu.cn/xs-mlvp/veriagent:latest
 SWARM_NETWORK ?= veriagent_net
 SWARM_MASTER_SERVICE ?= veriagent_master
