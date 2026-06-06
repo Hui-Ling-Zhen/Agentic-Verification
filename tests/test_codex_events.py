@@ -77,6 +77,16 @@ def test_unknown_codex_notification_is_preserved():
     assert events[0].status == "future/event"
 
 
+def test_empty_agent_delta_uses_unknown_event_fallback():
+    events = normalize_codex_notification(
+        _notification("item/agentMessage/delta", {"threadId": "thread-1", "turnId": "turn-1"})
+    )
+
+    assert len(events) == 1
+    assert events[0].kind == "unknown"
+    assert events[0].status == "item/agentMessage/delta"
+
+
 def test_typed_codex_turn_started_notification_is_normalized():
     pytest.importorskip("codex_app_server")
     from codex_app_server.generated.v2_all import TurnStartedNotification

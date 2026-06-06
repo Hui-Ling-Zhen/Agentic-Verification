@@ -3,6 +3,7 @@
 
 import os
 import sys
+import json
 import pytest
 from types import SimpleNamespace
 
@@ -58,13 +59,69 @@ class FakeTurnHandle:
         self.interrupted = True
 
 
+class RiskyTurnHandle(FakeTurnHandle):
+    def stream(self):
+        yield SimpleNamespace(
+            method="turn/plan/updated",
+            payload={
+                "thread_id": self.thread_id,
+                "turn_id": self.id,
+                "plan": {"steps": ["do unrelated cleanup"]},
+            },
+        )
+        yield SimpleNamespace(
+            method="item/started",
+            payload={
+                "thread_id": self.thread_id,
+                "turn_id": self.id,
+                "item": {
+                    "id": "cmd-1",
+                    "type": "commandExecution",
+                    "command": "rm -rf tmp",
+                    "status": "running",
+                },
+            },
+        )
+        yield SimpleNamespace(
+            method="item/completed",
+            payload={
+                "thread_id": self.thread_id,
+                "turn_id": self.id,
+                "item": {
+                    "id": "change-1",
+                    "type": "fileChange",
+                    "changes": [{"path": "Demo/README.md", "kind": "update"}],
+                    "status": "applied",
+                },
+            },
+        )
+        yield SimpleNamespace(
+            method="mcpServer/startupStatus/updated",
+            payload={
+                "thread_id": self.thread_id,
+                "turn_id": self.id,
+                "name": "veriagent",
+                "status": "failed",
+                "error": "connection refused",
+            },
+        )
+        yield SimpleNamespace(
+            method="turn/completed",
+            payload={
+                "thread_id": self.thread_id,
+                "turn": {"id": self.id, "status": "completed"},
+            },
+        )
+
+
 class FakeThread:
-    def __init__(self, thread_id):
+    def __init__(self, thread_id, turn_cls=FakeTurnHandle):
         self.id = thread_id
         self.turns = []
+        self.turn_cls = turn_cls
 
     def turn(self, prompt, **kwargs):
-        turn = FakeTurnHandle(self.id, f"turn-{len(self.turns) + 1}")
+        turn = self.turn_cls(self.id, f"turn-{len(self.turns) + 1}")
         self.turns.append((prompt, kwargs, turn))
         return turn
 
@@ -76,10 +133,11 @@ class FakeThread:
 
 
 class FakeCodex:
-    def __init__(self):
+    def __init__(self, turn_cls=FakeTurnHandle):
         self.started = []
         self.resumed = []
-        self.thread = FakeThread("thread-1")
+        self.turn_cls = turn_cls
+        self.thread = FakeThread("thread-1", turn_cls=turn_cls)
         self.closed = False
 
     def thread_start(self, **kwargs):
@@ -88,7 +146,7 @@ class FakeCodex:
 
     def thread_resume(self, thread_id, **kwargs):
         self.resumed.append((thread_id, kwargs))
-        self.thread = FakeThread(thread_id)
+        self.thread = FakeThread(thread_id, turn_cls=self.turn_cls)
         return self.thread
 
     def close(self):
@@ -102,6 +160,16 @@ class FakeStageManager:
     def on_file_observed(self, path, source="unknown"):
         self.observed.append((path, source))
 
+    def get_current_stage(self):
+        return SimpleNamespace(
+            name="functional_specification_analysis",
+            desc="Functional specification",
+            reference_files={"Guide_Doc/spec.md": False},
+            output_files=["unity_test/test_demo.py"],
+            meta_data={"journal": "last stage note"},
+            task_info=lambda: "Analyze functional specification",
+        )
+
 
 class FakeAgent:
     def __init__(self, workspace, dut_name="Demo"):
@@ -114,6 +182,9 @@ class FakeAgent:
 
     def message_echo(self, txt):
         self.messages.append(txt)
+
+    def is_break(self):
+        return False
 
 
 def test_codex_app_server_backend_runs_turn_and_persists_state(tmp_path):
@@ -147,6 +218,34 @@ def test_codex_app_server_backend_runs_turn_and_persists_state(tmp_path):
     assert saved.dut_name == "Demo"
     assert saved.workspace_hash is not None
     assert saved.backend_args_hash is not None
+
+
+def test_codex_app_server_promotes_codex_events_to_supervisor_signals(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    fake_codex = FakeCodex(turn_cls=RiskyTurnHandle)
+    agent = FakeAgent(str(workspace), dut_name="Demo")
+    config = SimpleNamespace(mcp_server=SimpleNamespace(port=5000))
+    backend = CodexAppServerBackend(
+        agent,
+        config=config,
+        model="gpt-test",
+        codex_factory=lambda: fake_codex,
+    )
+
+    backend.init()
+    summary = backend.run_turn("do verification work")
+
+    signal_kinds = {signal["kind"] for signal in summary["supervisor_signals"]}
+    assert summary["status"] == "failed"
+    assert "potentially_risky_command" in signal_kinds
+    assert "protected_input_touched" in signal_kinds
+    assert "plan_missing_stage_context" in signal_kinds
+    assert "mcp_startup_error" in signal_kinds
+    assert summary["turn_trace"]["plans"]
+    assert summary["turn_trace"]["commands"]
+    assert summary["turn_trace"]["diffs"]
+    assert summary["failure_reason"]
 
 
 def test_codex_app_server_starts_new_thread_on_fingerprint_mismatch(tmp_path):
@@ -256,7 +355,7 @@ def test_codex_app_server_resolves_codex_bin_from_path(tmp_path, monkeypatch):
     assert backend._resolve_codex_bin() == str(codex_bin)
 
 
-def test_codex_app_server_declines_unowned_approval_requests(tmp_path):
+def test_codex_app_server_records_structured_approval_decisions(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     backend = CodexAppServerBackend(
@@ -269,12 +368,75 @@ def test_codex_app_server_declines_unowned_approval_requests(tmp_path):
 
     decision = backend._handle_approval_request(
         "item/commandExecution/requestApproval",
-        {"threadId": "thread-1", "turnId": "turn-1", "itemId": "item-1"},
+        {
+            "threadId": "thread-1",
+            "turnId": "turn-1",
+            "itemId": "item-1",
+            "command": "python -m pytest",
+        },
     )
 
-    assert decision == {"decision": "decline"}
+    assert decision["decision"] == "accept"
     assert backend._approval_requests[0]["method"] == "item/commandExecution/requestApproval"
+    assert backend._approval_requests[0]["decision"]["decision"] == "approve"
     assert (workspace / ".veriagent" / "codex_events.jsonl").exists()
+
+    denied = backend._handle_approval_request(
+        "item/fileChange/requestApproval",
+        {
+            "threadId": "thread-1",
+            "turnId": "turn-1",
+            "itemId": "item-2",
+            "changes": [{"path": "Demo/README.md"}],
+        },
+    )
+    assert denied["decision"] == "decline"
+    assert backend._approval_requests[-1]["decision"]["policy"] == "protected_inputs"
+
+
+def test_codex_app_server_writes_structured_turn_context(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    backend = CodexAppServerBackend(
+        FakeAgent(str(workspace)),
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        codex_factory=lambda: FakeCodex(),
+    )
+    backend.CWD = str(workspace)
+
+    prompt = backend._merge_messages({"messages": ["stage instructions", "checker feedback"]})
+
+    context_file = workspace / ".veriagent" / "codex_turn_context.json"
+    assert context_file.exists()
+    data = json.loads(context_file.read_text(encoding="utf-8"))
+    assert data["stage_id"] == "functional_specification_analysis"
+    assert data["read_requirements"] == ["Guide_Doc/spec.md"]
+    assert "## VeriAgent Turn Context" in prompt
+    assert "## VeriAgent Messages" in prompt
+
+
+def test_codex_app_server_turn_context_includes_failed_turn_recovery(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    agent = FakeAgent(str(workspace))
+    agent._supervisor_recovery_context = {
+        "status": "failed",
+        "reason": "protected input touched",
+        "supervisor_signals": [{"kind": "protected_input_touched", "severity": "error"}],
+        "turn_trace": {"diffs": [{"file_paths": ["Demo/README.md"]}]},
+    }
+    backend = CodexAppServerBackend(
+        agent,
+        config=SimpleNamespace(mcp_server=SimpleNamespace(port=5000)),
+        codex_factory=lambda: FakeCodex(),
+    )
+    backend.CWD = str(workspace)
+
+    backend._merge_messages({"messages": ["retry after failure"]})
+
+    data = json.loads((workspace / ".veriagent" / "codex_turn_context.json").read_text(encoding="utf-8"))
+    assert data["recovery_context"]["status"] == "failed"
+    assert data["checker_feedback"][0]["supervisor_recovery_context"]["reason"] == "protected input touched"
 
 
 def test_codex_app_server_kwargs_match_openai_codex_sdk_models(tmp_path):

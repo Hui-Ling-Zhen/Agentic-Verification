@@ -1478,6 +1478,16 @@ class VerifyPDB(Pdb):
             except ValueError:
                 echo_r(f"Invalid port number: {positional[1]}. Port must be an integer.")
                 return
+        try:
+            backend_requires_domain_tools = self.agent.backend.requires_verification_only_mcp()
+        except AttributeError:
+            backend_requires_domain_tools = False
+        if backend_requires_domain_tools and not no_file_ops:
+            echo_r(
+                "The official codex_app_server path only allows verification-domain MCP tools. "
+                "Use `start_mcp_server_no_file_ops` instead."
+            )
+            return
         # -1 means auto-select an available port
         if port == -1:
             from veriagent.util.functions import find_available_port

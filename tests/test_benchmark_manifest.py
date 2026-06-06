@@ -25,9 +25,32 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
         all_completed=False,
         time_begin=None,
         time_end=None,
-        stages_info={},
+        stages_info={
+            0: {
+                "name": "spec_stage",
+                "is_completed": False,
+                "fail_count": 1,
+                "reference_files": {"Guide_Doc/spec.md": True},
+                "output_files": ["unity_test/test_demo.py"],
+                "skill_usage": {"ut": {"read": True}},
+                "journal": "stage note",
+                "checker_feedback": "pytest failed",
+            }
+        },
         is_agent_exit=False,
         run_status="starting",
+        last_turn={
+            "thread_id": "thread-1",
+            "turn_id": "turn-1",
+            "status": "failed",
+            "turn_context": {"stage_id": "spec_stage"},
+            "turn_context_file": str(tmp_path / ".veriagent" / "codex_turn_context.json"),
+            "turn_trace": {"commands": [{"command": "rm -rf tmp"}]},
+            "supervisor_signals": [
+                {"kind": "potentially_risky_command", "severity": "warning"},
+                {"kind": "protected_input_touched", "severity": "error"},
+            ],
+        },
         policy={
             "codex_config_file": str(tmp_path / ".codex" / "config.toml"),
             "codex_bin": "/usr/local/bin/codex",
@@ -49,6 +72,17 @@ def test_run_manifest_v3_includes_policy_audit_fields(tmp_path):
     assert manifest["backend_status"] == "official"
     assert manifest["backend_legacy"] is False
     assert manifest["run_status"] == "starting"
+    assert manifest["stage_trace"][0]["stage_id"] == "spec_stage"
+    assert manifest["stage_trace"][0]["checker_feedback"] == "pytest failed"
+    assert manifest["codex_turn_total"] == 1
+    assert manifest["checker_retry_total"] == 1
+    assert manifest["stage_recovery_count"] == 0
+    assert manifest["skill_usage_summary"]["ut"]["read"] == 1
+    assert manifest["tool_action_trace"]["commands"][0]["command"] == "rm -rf tmp"
+    assert manifest["codex_turn_context"]["stage_id"] == "spec_stage"
+    assert manifest["codex_turn_context_file"].endswith("codex_turn_context.json")
+    assert manifest["codex_turn_trace"]["commands"][0]["command"] == "rm -rf tmp"
+    assert manifest["codex_supervisor_signals"][1]["severity"] == "error"
     assert manifest["sandbox_mode"] == "workspace-write"
     assert manifest["codex_bin"] == "/usr/local/bin/codex"
     assert manifest["codex_metadata"]["serverInfo"]["version"] == "test"

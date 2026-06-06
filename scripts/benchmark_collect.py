@@ -30,6 +30,9 @@ CSV_FIELDS = [
     "stages_total",
     "stages_passed",
     "stages_skipped",
+    "codex_turn_total",
+    "checker_retry_total",
+    "stage_recovery_count",
     "duration_sec",
     "codex_thread_id",
     "codex_turn_id",
@@ -37,6 +40,8 @@ CSV_FIELDS = [
     "codex_mcp_tool_calls",
     "codex_file_changes",
     "codex_failure_reason",
+    "codex_supervisor_signal_count",
+    "codex_supervisor_error_count",
     "codex_bin",
     "sandbox_mode",
     "network_access",
@@ -81,6 +86,14 @@ def main() -> int:
     manifest_paths = find_manifest_files(scan_roots)
     rows = [_load_manifest(p) for p in manifest_paths]
     rows = [r for r in rows if r and not r.get("_error")]
+    for row in rows:
+        signals = row.get("codex_supervisor_signals") or []
+        if isinstance(signals, list):
+            row["codex_supervisor_signal_count"] = len(signals)
+            row["codex_supervisor_error_count"] = sum(
+                1 for signal in signals
+                if isinstance(signal, dict) and signal.get("severity") == "error"
+            )
 
     os.makedirs(os.path.dirname(os.path.abspath(os.path.join(ROOT, args.out))), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(os.path.join(ROOT, args.json))), exist_ok=True)

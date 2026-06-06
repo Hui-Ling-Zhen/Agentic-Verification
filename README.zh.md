@@ -20,6 +20,39 @@ Agentic-Verification 的核心循环很简单：**让 Codex 推进一步，运�
 
 因此官方路径是双层 runtime：Codex 负责内层读写、调试和修改；VeriAgent 负责外层验证契约。每个阶段都应该以 `Check` / `Complete` 闭环，而不是只产出一段看起来合理的回答。
 
+### 双层架构：用一个 agent runtime 构建另一个 agent runtime
+
+Agentic-Verification 的目标不是把一个 prompt 丢给 LLM，而是让 **VeriAgent 监督 Codex**。
+
+| 层级 | 职责 |
+|------|------|
+| **内层 agent runtime：Codex** | 读取 RTL/spec、修改文件、运行命令、流式输出事件，并维护 Codex thread/turn 状态。 |
+| **外层 supervisor runtime：VeriAgent** | 维护 workflow 阶段、Checker、验证域 MCP 工具、结构化 journal、policy 检查、失败恢复上下文和 benchmark manifest。 |
+
+官方 backend `veriagent/abackend/codex_sdk.py` 已经不是黑盒 CLI 调用，而是通过 OpenAI Codex app-server SDK 管理 Codex 的 **thread**、**turn**、**event stream**、**approval handler** 和 **turn context**。旧 `codex exec` backend 只作为 compatibility-only fallback 保留，因为它没有 SDK 的 thread/turn/event 契约。
+
+VeriAgent 会把 Codex event 提升成 supervisor signal：
+
+- command risk、protected input diff、MCP startup error、plan/stage mismatch 会进入 `codex_turn_trace` 和 `codex_supervisor_signals`；
+- failed turn 会把结构化 recovery context 带到下一轮 Codex，而不是只留下普通文本错误；
+- approval request 会由 VeriAgent policy 决策，并记录 approve/deny reason。
+
+每个 Codex turn 前，**`VeriAgentTurnContext`** 会把当前 stage goal、checker feedback、read requirements、journal、previous supervisor signals 和 recovery context 结构化传给 Codex。这比普通 prompt 拼接更接近 runtime contract。
+
+阶段完成前还必须写入可审计 journal。`SetCurrentStageJournal` 强制字段：
+
+```json
+{
+  "plan": "...",
+  "evidence_read": ["..."],
+  "changes_made": ["..."],
+  "checker_result": "...",
+  "next_risk": "..."
+}
+```
+
+这体现了当前架构的分工：**Codex 负责探索和实现，VeriAgent 负责要求可审计的推理轨迹和验证闭环。**
+
 ---
 
 ## 环境要求
@@ -88,7 +121,19 @@ veriagent output/workspace_Adder/ Adder \
 
 ## 可度量产出（Benchmark）
 
-每次运行在 workspace 下启动即写入 `.veriagent/run_manifest.json`，随后在 backend/stage 初始化、每个 Codex turn 之后、stage 保存时继续更新。manifest 记录 backend 状态（`official` 或 compatibility-only `legacy`）、run 状态、DUT、workflow、阶段进度、耗时、最后一个 Codex thread/turn、token、MCP tool 次数、文件变更数、失败原因与 sandbox/policy 审计字段。SDK 事件追加到 `.veriagent/codex_events.jsonl`。汇总：
+每次运行在 workspace 下启动即写入 `.veriagent/run_manifest.json`，随后在 backend/stage 初始化、每个 Codex turn 之后、stage 保存时继续更新。SDK 事件追加到 `.veriagent/codex_events.jsonl`。
+
+manifest 是衡量外层 supervisor 价值的主要产物：
+
+- `stage_trace`：阶段进展、checker feedback、journal、reference/output evidence、skill usage；
+- `codex_turn_trace`：Codex plan、diff、command、approval、MCP startup 状态和未来未知事件；
+- `checker_retry_total`：外层 Checker 迫使 Codex 重试的次数；
+- `stage_recovery_count`：失败后恢复并完成的阶段数量；
+- `skill_usage_summary`：workflow 要求的 skill 是否被 list/read/use；
+- `codex_supervisor_signals`：command risk、protected input touch、MCP startup error、plan mismatch、approval decision；
+- sandbox/policy 审计字段：`protected_inputs`、`writable_roots`、`network_access`、`policy_enforcement`。
+
+汇总：
 
 ```bash
 make benchmark   # → benchmark/summary.csv、benchmark/runs.json

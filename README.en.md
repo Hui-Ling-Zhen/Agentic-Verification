@@ -20,6 +20,15 @@ Agentic-Verification is built around a simple loop: **ask Codex to make progress
 
 This is why the official path is a two-layer runtime: Codex performs the inner read/write/debug turn, while VeriAgent owns the outer verification contract. Every stage is expected to end in `Check` / `Complete`, not just in a plausible-looking answer.
 
+### Two-layer architecture: VeriAgent supervising Codex
+
+Agentic-Verification is not a black-box LLM wrapper. The official backend in `veriagent/abackend/codex_sdk.py` uses the OpenAI Codex app-server SDK to manage Codex threads, turns, event streams, approval handling, and turn context.
+
+- Codex events become supervisor signals: command risk, protected-input diffs, MCP startup errors, and plan/stage mismatch are recorded in `codex_turn_trace` and `codex_supervisor_signals`.
+- `VeriAgentTurnContext` passes stage goal, checker feedback, read requirements, journal state, previous signals, and recovery context to Codex before each turn.
+- `SetCurrentStageJournal` requires `plan`, `evidence_read`, `changes_made`, `checker_result`, and `next_risk`, so Codex can explore while VeriAgent requires an auditable reasoning trail.
+- `run_manifest.json` records `stage_trace`, `codex_turn_trace`, `checker_retry_total`, `stage_recovery_count`, and `skill_usage_summary`, making the supervisor's value measurable.
+
 ---
 
 ## Requirements

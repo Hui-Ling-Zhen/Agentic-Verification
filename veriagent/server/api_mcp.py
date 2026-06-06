@@ -11,6 +11,8 @@ Protocol (MCP).  The class follows the same lifecycle pattern as
 import threading
 from typing import TYPE_CHECKING, Optional, Tuple
 
+from veriagent.util.functions import is_port_free
+
 if TYPE_CHECKING:
     from veriagent.verify_pdb import VerifyPDB
 
@@ -69,6 +71,7 @@ class PdbMcpServer:
         self._thread: Optional[threading.Thread] = None
         self._running = False
         self.started_at: Optional[float] = None
+        self.exposed_tool_names: list[str] = []
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -76,6 +79,7 @@ class PdbMcpServer:
     _GENERIC_FILE_TOOL_NAMES = {
         "PathList",
         "GetFileInfo",
+        "ReadTextFile",
         "ReadBinFile",
         "SearchText",
         "FindFiles",
@@ -102,6 +106,8 @@ class PdbMcpServer:
         """
         if self._running:
             return False, f"MCP server is already running at {self.url()}"
+        if not is_port_free(self.host, self.port):
+            return False, f"Port {self.port} on {self.host} is already in use"
 
         agent = self.pdb.agent
 
@@ -119,9 +125,10 @@ class PdbMcpServer:
             tools += agent.tool_list_file
         elif backend_requires_domain_tools:
             tools = self._filter_generic_file_tools(tools)
+        self.exposed_tool_names = [getattr(tool, "name", "") for tool in tools if getattr(tool, "name", None)]
 
         agent.cfg.update_template(
-            {"TOOLS": ", ".join([t.name for t in tools])}
+            {"TOOLS": ", ".join(self.exposed_tool_names)}
         )
 
         from veriagent.util.functions import create_verify_mcps, start_verify_mcps
@@ -194,3 +201,19 @@ class PdbMcpServer:
     def url(self) -> str:
         """Return the MCP server URL."""
         return f"http://{self.host}:{self.port}"
+
+    def health_check(
+        self,
+        required_tools: set[str] | None = None,
+        forbidden_tools: set[str] | None = None,
+    ) -> Tuple[bool, str]:
+        if not self.is_running:
+            return False, "MCP server thread is not running"
+        tools = set(self.exposed_tool_names)
+        missing = sorted((required_tools or set()) - tools)
+        forbidden = sorted((forbidden_tools or set()) & tools)
+        if missing:
+            return False, "missing required tools: " + ", ".join(missing)
+        if forbidden:
+            return False, "forbidden tools exposed: " + ", ".join(forbidden)
+        return True, "MCP server tool surface is healthy"

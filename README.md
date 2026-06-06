@@ -22,6 +22,39 @@ Agentic-Verification is built around a simple loop: **ask Codex to make progress
 
 This is why the official path is a two-layer runtime: Codex performs the inner read/write/debug turn, while VeriAgent owns the outer verification contract. Every stage is expected to end in `Check` / `Complete`, not just in a plausible-looking answer.
 
+### Two-layer architecture: agent runtime over agent runtime
+
+Agentic-Verification is designed as **VeriAgent supervising Codex**, not as a black-box prompt wrapper around an LLM.
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Inner agent runtime: Codex** | Reads RTL/specs, edits files, runs commands, streams events, and manages Codex thread/turn state. |
+| **Outer supervisor runtime: VeriAgent** | Owns workflow stages, Checkers, verification-domain MCP tools, structured journal requirements, policy checks, recovery feedback, and benchmark manifests. |
+
+The official backend in `veriagent/abackend/codex_sdk.py` uses the OpenAI Codex app-server SDK. It manages Codex **threads**, **turns**, **event streams**, **approval handling**, and **turn context** directly. The legacy `codex exec` backend is kept only for compatibility because it does not expose this thread/turn/event contract.
+
+VeriAgent also promotes Codex events into supervisor-visible signals:
+
+- command risk, protected-input diffs, MCP startup errors, and plan/stage mismatch are recorded in `codex_turn_trace` and `codex_supervisor_signals`;
+- failed turns carry structured recovery context into the next Codex turn instead of becoming only terminal text;
+- approval requests are evaluated by VeriAgent policy and logged with approve/deny reasons.
+
+Before each turn, **`VeriAgentTurnContext`** passes the current stage goal, checker feedback, required reads, journal state, previous supervisor signals, and recovery context to Codex. This is closer to a runtime contract than ordinary prompt concatenation.
+
+Stage completion also requires an auditable journal. `SetCurrentStageJournal` enforces:
+
+```json
+{
+  "plan": "...",
+  "evidence_read": ["..."],
+  "changes_made": ["..."],
+  "checker_result": "...",
+  "next_risk": "..."
+}
+```
+
+The intent is simple: **Codex explores and implements; VeriAgent requires an auditable reasoning trail before the stage can advance.**
+
 ---
 
 ## Requirements
@@ -85,7 +118,17 @@ veriagent output/workspace_Adder/ Adder \
 
 ## Benchmark / measurable output
 
-Each run writes **`.veriagent/run_manifest.json`** in the workspace as soon as the runtime starts, then updates it after backend/stage initialization, each Codex turn, and stage saves. The manifest records DUT, workflow, backend status (`official` vs compatibility-only `legacy`), run status, stage progress, duration, last Codex thread/turn, token usage, MCP tool calls, file changes, failure reason, and sandbox/policy audit fields. SDK events are appended to **`.veriagent/codex_events.jsonl`**.
+Each run writes **`.veriagent/run_manifest.json`** in the workspace as soon as the runtime starts, then updates it after backend/stage initialization, each Codex turn, and stage saves. SDK events are appended to **`.veriagent/codex_events.jsonl`**.
+
+The manifest is the main artifact for measuring whether the outer supervisor helped:
+
+- `stage_trace`: stage progress, checker feedback, journal, reference/output evidence, and skill usage;
+- `codex_turn_trace`: Codex plans, diffs, commands, approvals, MCP startup status, and unknown future events;
+- `checker_retry_total`: how often the outer checker forced another attempt;
+- `stage_recovery_count`: how many stages recovered after earlier failures;
+- `skill_usage_summary`: whether workflow-required skills were listed/read/used;
+- `codex_supervisor_signals`: command risk, protected input touch, MCP startup errors, plan mismatch, and approval decisions;
+- sandbox/policy audit fields such as `protected_inputs`, `writable_roots`, `network_access`, and `policy_enforcement`.
 
 After one or more runs:
 

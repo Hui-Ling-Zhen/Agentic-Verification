@@ -32,6 +32,71 @@ def _count_stages(stages_info: Dict[Any, Any]) -> Dict[str, int]:
     return {"total": total, "passed": passed, "skipped": skipped}
 
 
+def _build_stage_trace(stages_info: Dict[Any, Any]) -> List[Dict[str, Any]]:
+    trace: List[Dict[str, Any]] = []
+    if not isinstance(stages_info, dict):
+        return trace
+    for key, item in stages_info.items():
+        if not isinstance(item, dict):
+            continue
+        trace.append({
+            "stage_id": item.get("name") or item.get("stage_name") or str(key),
+            "completed": bool(item.get("completed") or item.get("is_completed")),
+            "skipped": bool(item.get("skipped") or item.get("is_skipped")),
+            "fail_count": item.get("fail_count", 0),
+            "reference_files": item.get("reference_files", {}),
+            "output_files": item.get("output_files", []),
+            "observed_files": item.get("observed_files", []),
+            "skill_usage": item.get("skill_usage", {}),
+            "journal": item.get("journal") or item.get("stage_journal"),
+            "checker_feedback": item.get("last_check_result") or item.get("checker_feedback"),
+        })
+    return trace
+
+
+def _build_supervisor_metrics(
+    stage_trace: List[Dict[str, Any]],
+    last_turn: Dict[str, Any],
+    previous: Dict[str, Any],
+) -> Dict[str, Any]:
+    turn_id = last_turn.get("turn_id")
+    prev_turn_id = previous.get("codex_turn_id")
+    prev_turn_total = int(previous.get("codex_turn_total", 0) or 0)
+    turn_total = prev_turn_total + (1 if turn_id and turn_id != prev_turn_id else 0)
+    checker_retry_total = sum(int(stage.get("fail_count") or 0) for stage in stage_trace)
+    stage_recovery_count = sum(
+        1 for stage in stage_trace
+        if stage.get("completed") and int(stage.get("fail_count") or 0) > 0
+    )
+    skill_usage_summary: Dict[str, Dict[str, int]] = {}
+    for stage in stage_trace:
+        skill_usage = stage.get("skill_usage") or {}
+        if not isinstance(skill_usage, dict):
+            continue
+        for skill_name, usage in skill_usage.items():
+            summary = skill_usage_summary.setdefault(
+                str(skill_name),
+                {"list": 0, "read": 0, "use": 0},
+            )
+            if isinstance(usage, dict):
+                for key in ("list", "read", "use"):
+                    summary[key] += 1 if usage.get(key) else 0
+    turn_trace = last_turn.get("turn_trace") or {}
+    tool_action_trace = {
+        "commands": turn_trace.get("commands", []),
+        "diffs": turn_trace.get("diffs", []),
+        "approvals": turn_trace.get("approvals", []),
+        "mcp_startup": turn_trace.get("mcp_startup", []),
+    }
+    return {
+        "codex_turn_total": turn_total,
+        "checker_retry_total": checker_retry_total,
+        "stage_recovery_count": stage_recovery_count,
+        "skill_usage_summary": skill_usage_summary,
+        "tool_action_trace": tool_action_trace,
+    }
+
+
 def build_run_manifest(
     *,
     workspace: str,
@@ -56,6 +121,9 @@ def build_run_manifest(
 ) -> Dict[str, Any]:
     prev = previous or {}
     counts = _count_stages(stages_info if isinstance(stages_info, dict) else {})
+    stage_trace = _build_stage_trace(stages_info if isinstance(stages_info, dict) else {})
+    turn = last_turn or {}
+    supervisor_metrics = _build_supervisor_metrics(stage_trace, turn, prev)
     duration_sec = None
     if time_begin is not None and time_end is not None:
         duration_sec = max(0.0, float(time_end) - float(time_begin))
@@ -79,13 +147,14 @@ def build_run_manifest(
         "stages_total": counts["total"],
         "stages_passed": counts["passed"],
         "stages_skipped": counts["skipped"],
+        "stage_trace": stage_trace,
+        **supervisor_metrics,
         "time_begin": time_begin,
         "time_end": time_end,
         "duration_sec": duration_sec,
         "started_at": prev.get("started_at") or _utc_now(),
         "updated_at": _utc_now(),
     }
-    turn = last_turn or {}
     manifest.update({
         "codex_thread_id": turn.get("thread_id"),
         "codex_turn_id": turn.get("turn_id"),
@@ -97,6 +166,10 @@ def build_run_manifest(
         "codex_event_log": turn.get("event_log"),
         "codex_approval_requests": turn.get("approval_requests", []),
         "codex_turn_sandbox_policy": turn.get("turn_sandbox_policy"),
+        "codex_turn_context": turn.get("turn_context", {}),
+        "codex_turn_context_file": turn.get("turn_context_file"),
+        "codex_turn_trace": turn.get("turn_trace", {}),
+        "codex_supervisor_signals": turn.get("supervisor_signals", []),
     })
     policy_data = policy or {}
     manifest.update({
@@ -175,6 +248,15 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
                 stages_info[idx] = stage.detail()
             except Exception:
                 stages_info[idx] = {"name": getattr(stage, "name", f"stage_{idx}")}
+            try:
+                stages_info[idx]["name"] = getattr(stage, "name", f"stage_{idx}")
+                stages_info[idx]["reference_files"] = getattr(stage, "reference_files", {})
+                stages_info[idx]["output_files"] = getattr(stage, "output_files", [])
+                stages_info[idx]["skill_usage"] = getattr(stage, "meta_data", {}).get("skill_usage", {})
+                stages_info[idx]["journal"] = getattr(stage, "meta_data", {}).get("journal")
+                stages_info[idx]["checker_feedback"] = getattr(stage, "last_do_check_info_fail", None)
+            except Exception:
+                pass
     manifest = build_run_manifest(
         workspace=agent.workspace,
         dut_name=getattr(agent, "dut_name", ""),
@@ -196,6 +278,11 @@ def update_run_manifest_from_agent(agent, stage_manager) -> Optional[str]:
         previous=previous,
         run_status=getattr(agent, "_run_manifest_status", None),
     )
+    runtime_services = getattr(agent, "runtime_services", None)
+    if runtime_services is not None and hasattr(runtime_services, "to_manifest"):
+        manifest["runtime_services"] = runtime_services.to_manifest()
+    else:
+        manifest["runtime_services"] = getattr(agent, "runtime_service_plan", {}) or {}
     return save_run_manifest(agent.workspace, manifest)
 
 

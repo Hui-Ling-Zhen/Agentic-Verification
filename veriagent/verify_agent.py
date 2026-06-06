@@ -26,6 +26,7 @@ from .tools.planning import *
 from .stage import StageManager
 from .verify_pdb import VerifyPDB
 from .interaction import EnhancedInteractionLogic, AdvancedInteractionLogic
+from .runtime_services import RuntimeServices, build_runtime_service_plan
 from .version import __version__, __email__
 
 import time
@@ -401,6 +402,11 @@ class VerifyAgent:
             if init_cmd is None:
                 init_cmd = []
             init_cmd = init_cmd + cfg_icmds
+        self.runtime_services = RuntimeServices()
+        for cmd in init_cmd or []:
+            self.runtime_services.register_command(cmd)
+        self.runtime_service_plan = self.runtime_services.to_manifest()
+        self._supervisor_recovery_context = None
         # PDB and backend
         self.backend = get_backend(self, self.cfg)
         self.message_manage_node = self.backend.get_message_manage_node()
@@ -496,7 +502,32 @@ class VerifyAgent:
             raise RuntimeError(f"Failed to start verification-only MCP server: {msg}")
         self.pdb._mcp_server = server
         self._wait_for_mcp_server_ready(host, port)
+        self._check_mcp_tool_surface(server)
+        if not hasattr(self, "runtime_services"):
+            self.runtime_services = RuntimeServices()
+        self.runtime_services.register(
+            "mcp",
+            "programmatic_verification_only_mcp",
+            raw_command=f"{host}:{port}",
+            lifecycle="runtime",
+            status="running",
+            metadata={"no_file_ops": True},
+        )
+        self.runtime_service_plan = self.runtime_services.to_manifest()
         info(msg)
+
+    def _shutdown_mcp_server_safely(self):
+        server = getattr(getattr(self, "pdb", None), "_mcp_server", None)
+        if server is None or not getattr(server, "is_running", False):
+            return
+        try:
+            ok, msg = server.stop()
+            if ok:
+                info(msg)
+            else:
+                warning(msg)
+        except Exception as exc:
+            warning(f"Failed to stop MCP server during VeriAgent shutdown: {exc}")
 
     def _wait_for_mcp_server_ready(self, host, port, timeout_sec=10.0):
         import socket
@@ -513,6 +544,17 @@ class VerifyAgent:
         raise RuntimeError(
             f"Verification-only MCP server did not become ready at {host}:{port}: {last_error}"
         )
+
+    def _check_mcp_tool_surface(self, server):
+        checker = getattr(server, "health_check", None)
+        if not callable(checker):
+            return
+        ok, msg = checker(
+            required_tools={"Check", "Complete"},
+            forbidden_tools={"ReadTextFile", "EditTextFile", "SearchText", "FindFiles"},
+        )
+        if not ok:
+            raise RuntimeError(f"Verification-only MCP server health check failed: {msg}")
 
     def get_messages_cfg(self, keys: Optional[List[str]] = None) -> Dict[str, Any]:
         if self.message_manage_node is None:
@@ -713,6 +755,7 @@ class VerifyAgent:
         if self.is_exit():
             return
         self._is_exit = True
+        self._shutdown_mcp_server_safely()
         if hasattr(self, "backend"):
             self.backend.close()
         fc.chmode_rw(self.cwd_read_only_files)
@@ -783,6 +826,7 @@ class VerifyAgent:
         return self
 
     def run_loop(self, msg=None):
+        self._register_runtime_loop_service()
         if msg:
             self.set_continue_msg(msg)
         self._need_human = False
@@ -805,6 +849,26 @@ class VerifyAgent:
         )
         info(f"Total time taken: {fmt_time_deta(time_end - self._time_start)}")
         return self
+
+    def _register_runtime_loop_service(self):
+        if not hasattr(self, "runtime_services"):
+            self.runtime_services = RuntimeServices()
+        services = getattr(self.runtime_services, "services", [])
+        if any(
+            item.get("service") == "loop" and item.get("command") == "run_loop"
+            for item in services
+        ):
+            return
+        self.runtime_services.register(
+            "loop",
+            "run_loop",
+            raw_command="VerifyAgent.run_loop",
+            lifecycle="runtime",
+            status="running",
+            metadata={"loop_alive_time": getattr(self, "loop_alive_time", None)},
+        )
+        self.runtime_service_plan = self.runtime_services.to_manifest()
+        self._update_run_manifest_safely("loop_running")
 
     def one_loop(self, msg=None):
         """Enhanced one loop with intelligent interaction logic based on configured mode"""
@@ -965,8 +1029,11 @@ class VerifyAgent:
         self._last_backend_turn_result = copy.deepcopy(result)
         status = result.get("status")
         if status == TURN_STATUS_COMPLETED:
+            self._supervisor_recovery_context = None
+            self._queue_supervisor_signal_feedback(result)
             return
         reason = result.get("failure_reason") or f"Backend turn status: {status}"
+        self._record_supervisor_recovery_context(result, reason)
         if status == TURN_STATUS_REQUIRES_APPROVAL:
             self._need_human = True
             self._tool__call_error = [
@@ -994,6 +1061,38 @@ class VerifyAgent:
                 )
             ]
             self.set_break(True)
+
+    def _record_supervisor_recovery_context(self, result, reason):
+        self._supervisor_recovery_context = {
+            "status": result.get("status"),
+            "reason": reason,
+            "supervisor_signals": result.get("supervisor_signals", []) or [],
+            "turn_trace": result.get("turn_trace", {}) or {},
+            "checker_feedback": copy.deepcopy(self._tool__call_error),
+            "codex_thread_id": result.get("thread_id"),
+            "codex_turn_id": result.get("turn_id"),
+        }
+
+    def _queue_supervisor_signal_feedback(self, result):
+        signals = [
+            signal for signal in result.get("supervisor_signals", []) or []
+            if signal.get("severity") != "error"
+        ]
+        if not signals:
+            return
+        lines = [
+            "Supervisor feedback from the previous Codex turn:",
+        ]
+        for signal in signals[:5]:
+            lines.append(
+                f"- {signal.get('kind', 'signal')}: {signal.get('message', '')}"
+            )
+        lines.append(
+            "Address these points in the next turn before calling Check or Complete."
+        )
+        current = self._continue_msg
+        feedback = "\n".join(lines)
+        self._continue_msg = f"{feedback}\n\n{current}" if current else feedback
 
     def _check_codex_protected_inputs_read_only(self):
         """Warn if protected Codex input directories still carry write bits."""

@@ -2,6 +2,7 @@
 """Verification manager for VeriAgent stage execution."""
 
 import copy
+import json
 import os
 import time
 import traceback
@@ -23,6 +24,49 @@ from veriagent.util.functions import make_llm_tool_ret
 from veriagent.util.log import info, warning
 from veriagent.stage.llm_suggestion.base_suggestion import get_llm_check_instance
 from veriagent.tools.skill import _list_skills, list_skills_in_format
+
+
+JOURNAL_REQUIRED_FIELDS = (
+    "plan",
+    "evidence_read",
+    "changes_made",
+    "checker_result",
+    "next_risk",
+)
+
+
+def normalize_stage_journal(journal):
+    """Validate the auditable stage journal schema used by VeriAgent."""
+    if isinstance(journal, str):
+        try:
+            journal = json.loads(journal)
+        except json.JSONDecodeError:
+            return None, (
+                "Stage journal must be a JSON object with fields: "
+                + ", ".join(JOURNAL_REQUIRED_FIELDS)
+            )
+    if not isinstance(journal, dict):
+        return None, (
+            "Stage journal must be an object with fields: "
+            + ", ".join(JOURNAL_REQUIRED_FIELDS)
+        )
+    missing = [field for field in JOURNAL_REQUIRED_FIELDS if field not in journal]
+    empty = [
+        field for field in JOURNAL_REQUIRED_FIELDS
+        if field in journal and journal[field] in (None, "", [], {})
+    ]
+    if missing or empty:
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if empty:
+            parts.append("empty: " + ", ".join(empty))
+        return None, "Invalid stage journal schema (" + "; ".join(parts) + ")."
+    normalized = {field: journal[field] for field in JOURNAL_REQUIRED_FIELDS}
+    for key, value in journal.items():
+        if key not in normalized:
+            normalized[key] = value
+    return normalized, None
 
 
 class ManagerTool(UCTool):
@@ -108,8 +152,11 @@ class ToolAllStageJournal(ManagerTool):
 
 
 class ArgSetCurrentStageJournal(BaseModel):
-    journal: str = Field(
-        description="The journal content to set for the current stage. Cannot be empty."
+    journal: Dict[str, Any] = Field(
+        description=(
+            "Structured stage journal. Required fields: plan, evidence_read, "
+            "changes_made, checker_result, next_risk."
+        )
     )
 
 
@@ -118,17 +165,17 @@ class ToolSetCurrentStageJournal(ManagerTool):
     name: str = "SetCurrentStageJournal"
     description: str = (
         "Set the journal of the current stage. \n"
-        "This tool is used to record important information during the current stage. When completing the stage, the journal should be set. \n"
-        "The journal content should be concise and clear and only the necessary information should be included.\n"
-        "eg: - What you have done in this stage.\n"
-        "    - What problems you have encountered and how you solved them.\n"
-        "    - Experience or lessons learned during this stage.\n"
-        "    - Files and its comments you have created or modified in this stage.\n"
-        "    - Things to note when re-continuing this stage in the future.\n"
+        "Use this tool to record an auditable reasoning trace before completing the stage. \n"
+        "The journal must be a structured object with these fields:\n"
+        "- plan: brief plan used for the stage.\n"
+        "- evidence_read: reference files, specs, logs, or outputs actually inspected.\n"
+        "- changes_made: generated or modified artifacts and why they changed.\n"
+        "- checker_result: latest Check/Complete result and how it was addressed.\n"
+        "- next_risk: remaining risk, follow-up, or why no risk remains.\n"
     )
     args_schema: Optional[ArgsSchema] = ArgSetCurrentStageJournal
 
-    def _run(self, journal: str = "",
+    def _run(self, journal: Dict[str, Any] = None,
              run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         if not journal:
             return "Journal content cannot be empty."
@@ -744,7 +791,14 @@ class StageManager(object):
     def set_current_stage_journal(self, journal):
         stage = self.get_current_stage()
         if stage:
-            stage.meta_set_journal(journal)
+            normalized, error_msg = normalize_stage_journal(journal)
+            if error_msg:
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "required_schema": list(JOURNAL_REQUIRED_FIELDS),
+                }
+            stage.meta_set_journal(normalized)
             return "Set journal success."
         return "No current stage available."
 
@@ -927,9 +981,15 @@ class StageManager(object):
         ck_pass, ck_info = self.stages[self.stage_index].do_check(**{"timeout": timeout, "is_complete": True, "ex_args": ex_args})
         stage = self.stages[self.stage_index]
         if ck_pass:
-            if stage.meta_get_journal() is None:
+            journal, journal_error = normalize_stage_journal(stage.meta_get_journal())
+            if journal is None:
                 return {"complete": False,
-                        "error": "Please use tool 'SetCurrentStageJournal' to set the journal of this stage before completing it."}
+                        "error": (
+                            "Please use tool 'SetCurrentStageJournal' to set a structured journal "
+                            f"before completing this stage. {journal_error}"
+                        ),
+                        "required_schema": list(JOURNAL_REQUIRED_FIELDS)}
+            stage.meta_set_journal(journal)
         if ck_pass:
             llm_msg = self.gen_pass_suggestion(ck_info)
             ck_pass = stage.get_approved()

@@ -134,6 +134,17 @@ def _normalize_file_path(workspace: str | None, path: str) -> str:
         return path
 
 
+def _unknown_event(method: Any, payload: Any, notification: Any) -> CodexRuntimeEvent:
+    thread_id, turn_id = _event_ids(payload)
+    return CodexRuntimeEvent(
+        "unknown",
+        thread_id,
+        turn_id,
+        status=str(method or "unknown"),
+        raw=notification,
+    )
+
+
 def normalize_codex_notification(notification: Any, workspace: str | None = None) -> list[CodexRuntimeEvent]:
     """Convert one Codex SDK notification into zero or more runtime events."""
 
@@ -145,36 +156,14 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
     if method == "item/agentMessage/delta":
         text = _get_attr(payload, "delta") or _get_attr(payload, "text")
         if text:
-            events.append(CodexRuntimeEvent("agent_message_delta", thread_id, turn_id, text=str(text), raw=notification))
-        if events:
-            return events
-        events.append(
-            CodexRuntimeEvent(
-                "unknown",
-                thread_id,
-                turn_id,
-                status=str(method or "unknown"),
-                raw=notification,
-            )
-        )
-        if events:
-            return events
-        events.append(
-            CodexRuntimeEvent(
-                "unknown",
-                thread_id,
-                turn_id,
-                status=str(method or "unknown"),
-                raw=notification,
-            )
-        )
-        return events
+            return [CodexRuntimeEvent("agent_message_delta", thread_id, turn_id, text=str(text), raw=notification)]
+        return [_unknown_event(method, payload, notification)]
 
     if method == "item/commandExecution/outputDelta":
         text = _get_attr(payload, "delta") or _get_attr(payload, "text")
         if text:
-            events.append(CodexRuntimeEvent("command_output_delta", thread_id, turn_id, text=str(text), raw=notification))
-        return events
+            return [CodexRuntimeEvent("command_output_delta", thread_id, turn_id, text=str(text), raw=notification)]
+        return [_unknown_event(method, payload, notification)]
 
     if method == "item/fileChange/patchUpdated":
         raw_paths = _file_paths_from_changes(_get_attr(payload, "changes"))
@@ -278,18 +267,7 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
                     raw=notification,
                 )
             )
-        if events:
-            return events
-        events.append(
-            CodexRuntimeEvent(
-                "unknown",
-                thread_id,
-                turn_id,
-                status=str(method or "unknown"),
-                raw=notification,
-            )
-        )
-        return events
+        return events or [_unknown_event(method, payload, notification)]
 
     phase = "started" if method == "item/started" else "completed"
     item = _item_payload(payload)
@@ -330,13 +308,4 @@ def normalize_codex_notification(notification: Any, workspace: str | None = None
             events.append(CodexRuntimeEvent("file_observed", tool=tool, file_paths=paths, **base))
         return events
 
-    events.append(
-        CodexRuntimeEvent(
-            "unknown",
-            thread_id,
-            turn_id,
-            status=str(method or "unknown"),
-            raw=notification,
-        )
-    )
-    return events
+    return [_unknown_event(method, payload, notification)]
