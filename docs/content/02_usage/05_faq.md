@@ -24,7 +24,7 @@ make example-baseline
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```
@@ -63,7 +63,7 @@ pip install -r requirements.txt
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 只有确认要跨指纹复用旧 Codex thread 时，才使用：

@@ -22,7 +22,7 @@ make example-peripheral
 ```bash
 veriagent output/workspace_uart_16550/ uart_16550 \
   --config examples/02-peripheral-ip/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 ## 快速运行

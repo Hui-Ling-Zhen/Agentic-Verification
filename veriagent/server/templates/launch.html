@@ -487,9 +487,6 @@ function applyOfficialContract(options) {
   if (contract.loop_required) next.loop = true;
   if (contract.mcp_server_no_file_tools_required) next.mcp_server_no_file_tools = true;
   if (contract.mcp_server_forbidden) next.mcp_server = false;
-  if (contract.break_or_tui_required && !next.human && !next.tui) {
-    next.human = true;
-  }
   return next;
 }
 

@@ -139,8 +139,8 @@ launch:
     launch_mode: ["process"]          # full support: ["process", "docker", "docker_swarm", "k8s"]
     output: "unity_test"              # output directory name
     stream_output: true               # -s flag
-    human: true                       # -hm flag
-    tui: true                         # --tui flag
+    human: false                      # -hm flag; optional interactive breakpoint
+    tui: false                        # --tui flag; optional interactive console
     backend: "codex_app_server"
     mcp_server_no_file_tools: true
     web_console: "0.0.0.0:-1"         # --web-console flag

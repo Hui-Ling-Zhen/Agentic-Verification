@@ -29,7 +29,7 @@ make example-algorithm
 ```bash
 veriagent output/workspace_IntegerDivider/ IntegerDivider \
   --config examples/04-algorithm/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 可选：`NEED_REF_MODEL=true` 启用参考模型 stage。

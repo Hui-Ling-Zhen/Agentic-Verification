@@ -11,7 +11,6 @@ OFFICIAL_SUPERVISED_CODEX_CONTRACT = {
     "loop_required": True,
     "mcp_server_no_file_tools_required": True,
     "mcp_server_forbidden": True,
-    "break_or_tui_required": True,
     "network_policy_key": "backend.codex_app_server.args.codex_network_access",
     "default_network_access": "enabled",
 }
@@ -19,8 +18,6 @@ OFFICIAL_SUPERVISED_CODEX_CONTRACT = {
 OFFICIAL_SUPERVISED_CODEX_ARGS = [
     "--mcp-server-no-file-tools",
     "-s",
-    "-hm",
-    "--tui",
     "--loop",
     "--backend=codex_app_server",
 ]
@@ -62,6 +59,4 @@ def validate_official_cli_args(args) -> list[str]:
         errors.append("--mcp-server-no-file-tools")
     if getattr(args, "mcp_server", False):
         errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
-    if not (getattr(args, "human", False) or getattr(args, "tui", False)):
-        errors.append("-hm/--human or --tui")
     return errors

@@ -1202,7 +1202,7 @@ def run() -> None:
 
     _validate_official_codex_app_server_path(args)
 
-    # Make sure mcp server is started before tui
+    # TUI remains optional; official MCP lifecycle is started by VerifyAgent.
     if args.tui:
         init_cmds += ["tui"]
 
@@ -1270,7 +1270,7 @@ def run() -> None:
     if args.icmd:
         init_cmds += args.icmd
     
-    if args.loop:
+    if args.loop and effective_backend != OFFICIAL_BACKEND:
         init_cmds += ["loop " + args.loop_msg]
 
     if args.append_py_path:

@@ -341,8 +341,6 @@ def _validate_official_launch_request(req: Dict[str, Any]) -> List[str]:
         errors.append("--mcp-server-no-file-tools")
     if bool(req.get("mcp_server")):
         errors.append("use --mcp-server-no-file-tools instead of --mcp-server")
-    if not (bool(req.get("human")) or bool(req.get("tui"))):
-        errors.append("-hm/--human or --tui")
     return errors
 
 

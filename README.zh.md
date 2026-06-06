@@ -68,7 +68,7 @@ make example-baseline
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 无需另开终端手动启动外部 Code Agent。**不要**使用旧 `codex` CLI、langchain API 或「仅 MCP、无 loop」作为主路径。**必须**提供 `--config`，Runtime 不内置 UT/Formal workflow。
@@ -80,7 +80,7 @@ Sandbox 说明：`.codex/config.toml` 中的 `veriagent_policy` 是审计提示�
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --override backend.codex_app_server.args.codex_network_access=disabled
 ```
 

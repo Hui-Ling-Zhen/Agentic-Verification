@@ -19,7 +19,7 @@ veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
   --mcp-server-port -1 \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server \
   --exit-on-completion

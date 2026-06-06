@@ -62,7 +62,7 @@ make example-baseline
 1. 准备 `examples/01-baseline/adder` 输入材料。
 2. 用 `picker` 导出 Adder DUT。
 3. 复制 workflow、Guide_Doc 和 skills 到工作区。
-4. 启动 VeriAgent TUI、MCP server 和监督循环。
+4. 启动 VeriAgent runtime 显式 MCP server 和监督循环；如需交互界面可额外加 `--tui`。
 5. 通过 `codex_app_server` 后端让 Codex 逐轮完成验证任务。
 
 等价的标准 CLI 形式如下：
@@ -71,7 +71,7 @@ make example-baseline
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```
@@ -84,7 +84,7 @@ veriagent output/workspace_Adder/ Adder \
 | `--backend=codex_app_server` | 官方 Codex SDK backend，提供 thread/turn/event 可观测性 |
 | `--loop` | 启动 VeriAgent 监督循环 |
 | `--mcp-server-no-file-tools` | MCP 只暴露验证域工具，文件/命令操作由 Codex 本地 runtime 处理 |
-| `-s -hm --tui` | 流式输出、人工审查点、TUI 界面 |
+| `-s` | 流式输出；交互审查可额外加 -hm 或 --tui |
 
 不要在官方路径中省略 `--config`；不带 workflow 的运行会直接报错，并提示 `examples/*/workflow/*.yaml` 示例路径。
 
@@ -149,7 +149,7 @@ make example-formal
 veriagent {WORKSPACE}/ {DUT} \
   --config examples/{storyline}/workflow/{workflow}.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```

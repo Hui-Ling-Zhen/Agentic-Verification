@@ -27,7 +27,7 @@ Makefile 与 Web Master 会指向上述路径；也可手动：
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```

@@ -10,8 +10,8 @@ Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 ## 标准 CLI 参数
 
 ```text
---mcp-server-no-file-tools   # 启动 MCP；文件类操作由 Codex 本地完成
--s -hm --tui                 # 流式输出、人工审查点、TUI
+--mcp-server-no-file-tools   # runtime 显式启动 verification-only MCP；文件类操作由 Codex 本地完成
+-s                           # 流式输出；交互审查可额外加 -hm 或 --tui
 --loop                       # Runtime 监督循环（注入阶段任务后 spawn Codex）
 --backend=codex_app_server   # Codex app-server SDK；持久化 thread/turn，并渲染 .codex/config.toml 连 MCP
 ```
@@ -27,7 +27,7 @@ Agentic-Verification 的官方验证路径是 **Codex SDK backend**：
 ```bash
 veriagent {WORKSPACE}/ {DUT} \
   --config {WORKFLOW} \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --override backend.codex_app_server.args.codex_network_access=disabled
 ```
 
@@ -41,7 +41,7 @@ veriagent {WORKSPACE}/ {DUT} \
 veriagent {WORKSPACE}/ {DUT} \
   --config {WORKFLOW} \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```

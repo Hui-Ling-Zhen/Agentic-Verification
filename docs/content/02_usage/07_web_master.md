@@ -48,7 +48,7 @@ veriagent --as-master-persist --as-master --as-master-password "your_password"
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server \
   --master 127.0.0.1:8800 your_key

@@ -30,7 +30,7 @@ make spec_DCache
 veriagent output/ DCache \
   --config examples/06-planning/workflow/genspec.yaml \
   --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --no-embed-tools
 ```
 

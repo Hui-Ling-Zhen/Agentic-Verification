@@ -38,7 +38,7 @@ make mcp_Adder
 这些目标会自动选择外置 workflow，并注入官方参数组合：
 
 ```text
---mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+--mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 ## 直接用 CLI 启动
@@ -47,7 +47,7 @@ make mcp_Adder
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```
@@ -68,7 +68,7 @@ veriagent output/workspace_Adder/ Adder \
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --override backend.codex_app_server.args.codex_network_access=disabled
 ```
 
@@ -77,7 +77,7 @@ veriagent output/workspace_Adder/ Adder \
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --force-stage-index 3
 ```
 
@@ -89,7 +89,7 @@ veriagent output/workspace_arbiter/ arbiter \
   --use-skill \
   --guid-doc-path examples/05-formal/arbiter/Guide_Doc \
   --output formal_test \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 ## 运行结果

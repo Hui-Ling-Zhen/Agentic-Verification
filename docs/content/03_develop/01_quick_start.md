@@ -252,7 +252,7 @@ python3 ../../veriagent.py \
         --mcp-server-no-file-tools \
         --config ./mini.yaml \
         --guid-doc-path ./Guide_Doc/ \
-        -s -hm --tui --loop \
+        -s --loop \
         --backend=codex_app_server \
         --no-embed-tools
 ```

@@ -344,7 +344,7 @@ export SKIP_MOCK_COMPONENT=false
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --unskip 13 --unskip 15 --unskip 18
 ```
 
@@ -417,7 +417,7 @@ export SKIP_MOCK_COMPONENT=false
 # 2. 启动 VeriAgent
 veriagent output/workspace_PTW/ PTW \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 
 # 3. 在 TUI 中设置强制人工检查
 hmcheck_set 5 true    # 3.3 检测点设计与定义

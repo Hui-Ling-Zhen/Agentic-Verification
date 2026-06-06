@@ -119,11 +119,10 @@ mkdir output
 # 2.移动现有RTL和文档
 cp -r examples/06-planning/genspec/Adder output/
 
-# 3. 启动 GenSpec 流程 (使用 MCP 集成模式)
-veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui --mcp-server-no-file-tools --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+# 3. 启动 GenSpec 流程（官方监督式 Codex SDK）
+veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -s --loop --mcp-server-no-file-tools --backend=codex_app_server --no-embed-tools --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
 
-# 或者直接启动 TUI 模式
-veriagent output/ Adder --config examples/06-planning/workflow/genspec.yaml -hm --tui -s --no-embed-tools -l --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md
+# 如需交互审查，可额外追加 -hm 或 --tui
 ```
 
 ### 规范生成流程配置说明
@@ -203,7 +202,7 @@ output/
 veriagent output/ Adder \
   --config examples/06-planning/workflow/genspec.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui --loop \
+  -s --loop \
   --backend=codex_app_server \
   --no-embed-tools \
   --guid-doc-path examples/06-planning/genspec/SpecDoc/dut_spec_template.md

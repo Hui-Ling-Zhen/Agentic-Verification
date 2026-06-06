@@ -11,7 +11,7 @@ VeriAgent 是 Agentic-Verification 的外层监督 runtime：它负责 workflow 
 veriagent {WORKSPACE}/ {DUT} \
   --config examples/.../workflow/*.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```
@@ -34,7 +34,7 @@ make example-baseline
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
   --mcp-server-no-file-tools \
-  -s -hm --tui \
+  -s \
   --loop \
   --backend=codex_app_server
 ```
@@ -130,7 +130,7 @@ Formal workflow 通常需要：
 veriagent {WORKSPACE}/ {DUT} \
   --config examples/05-formal/workflow/formal.yaml \
   --use-skill \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 UT workflow 默认可以带 skills 目录，但不一定强制 `--use-skill`。以具体 workflow 中的 `skill.use_skill`、`skill_list`、`force_use_skill` 为准。

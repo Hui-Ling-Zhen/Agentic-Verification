@@ -65,7 +65,7 @@ Equivalent CLI (from repo root):
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server
 ```
 
 **`--config` is required.** Running without it exits with an error and example paths. Do not rely on a built-in default workflow inside `veriagent/`.
@@ -77,7 +77,7 @@ Sandbox note: `veriagent_policy` in `.codex/config.toml` is an audit hint, not a
 ```bash
 veriagent output/workspace_Adder/ Adder \
   --config examples/01-baseline/workflow/default.yaml \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --override backend.codex_app_server.args.codex_network_access=disabled
 ```
 

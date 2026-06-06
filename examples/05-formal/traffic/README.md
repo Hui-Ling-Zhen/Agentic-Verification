@@ -19,7 +19,7 @@ veriagent examples/05-formal/output/workspace_traffic/ traffic \
   --config examples/05-formal/workflow/formal.yaml \
   --guid-doc-path veriagent/lang/zh/doc/Formal_Doc/ \
   --output formal_test \
-  --mcp-server-no-file-tools -s -hm --tui --loop --backend=codex_app_server \
+  --mcp-server-no-file-tools -s --loop --backend=codex_app_server \
   --use-skill
 ```
 
