@@ -2,19 +2,20 @@
   "schema_version": "3",
   "project": "Agentic-Verification",
   "dut": "Adder",
-  "ablation_mode": "B_raw_codex",
-  "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex",
+  "ablation_mode": "C_black_box_agent_backend",
+  "architecture": "Black-box Agent Backend",
+  "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend",
   "workflow_config": "examples/01-baseline/workflow/default.yaml",
-  "backend": "raw_codex_prompt",
-  "backend_class": "synthetic.ablation",
-  "backend_status": "external_baseline",
+  "backend": "codex",
+  "backend_class": "demo.ablation",
+  "backend_status": "legacy",
   "backend_legacy": true,
-  "version": "synthetic",
+  "version": "demo",
   "seed": 42,
   "stage_index": 2,
   "all_completed": false,
   "is_agent_exit": false,
-  "run_status": "simulated_incomplete",
+  "run_status": "demo_incomplete",
   "stages_total": 4,
   "stages_passed": 2,
   "stages_skipped": 0,
@@ -60,7 +61,7 @@
       "stage_id": "functional_specification_analysis",
       "completed": false,
       "skipped": false,
-      "fail_count": 0,
+      "fail_count": 2,
       "reference_files": {
         "Guide_Doc/dut_functions_and_checks.md": false
       },
@@ -76,7 +77,7 @@
         }
       },
       "journal": null,
-      "checker_feedback": "No outer Check/Complete loop; artifacts were plausible but not stage-gated."
+      "checker_feedback": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state."
     },
     {
       "stage_id": "test_generation",
@@ -93,8 +94,8 @@
       "checker_feedback": null
     }
   ],
-  "codex_turn_total": 3,
-  "checker_retry_total": 0,
+  "codex_turn_total": 0,
+  "checker_retry_total": 2,
   "stage_recovery_count": 0,
   "skill_usage_summary": {
     "functions-and-checks": {
@@ -106,7 +107,7 @@
   "tool_action_trace": {
     "commands": [
       {
-        "command": "codex exec <raw prompt>"
+        "command": "codex exec <veriagent prompt>"
       }
     ],
     "diffs": [
@@ -119,9 +120,9 @@
     "approvals": [],
     "mcp_startup": []
   },
-  "duration_sec": 180.0,
-  "started_at": "2026-06-07T03:25:12+00:00",
-  "updated_at": "2026-06-07T03:25:12+00:00",
+  "duration_sec": 310.0,
+  "started_at": "2026-06-07T06:44:18+00:00",
+  "updated_at": "2026-06-07T06:44:18+00:00",
   "codex_thread_id": null,
   "codex_turn_id": null,
   "codex_turn_status": "failed",
@@ -132,15 +133,15 @@
   },
   "codex_mcp_tool_calls": 0,
   "codex_file_changes": 2,
-  "codex_failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated.",
-  "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_events.jsonl",
+  "codex_failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state.",
+  "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/.veriagent/codex_events.jsonl",
   "codex_approval_requests": [],
   "codex_turn_context": {
     "stage_id": "functional_specification_analysis",
     "checker_feedback": [],
     "recovery_context": {}
   },
-  "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_turn_context.json",
+  "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/.veriagent/codex_turn_context.json",
   "codex_turn_trace": {
     "plans": [
       {
@@ -156,7 +157,7 @@
     ],
     "commands": [
       {
-        "command": "codex exec <raw prompt>"
+        "command": "codex exec <veriagent prompt>"
       }
     ],
     "errors": [],
@@ -164,14 +165,20 @@
     "mcp_startup": [],
     "unknown_events": []
   },
-  "codex_supervisor_signals": [],
+  "codex_supervisor_signals": [
+    {
+      "kind": "legacy_backend_opaque",
+      "severity": "warning",
+      "message": "No structured Codex event stream."
+    }
+  ],
   "sandbox_mode": null,
   "network_access": "disabled",
   "protected_inputs": [
-    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder",
-    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder_RTL"
+    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/Adder",
+    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/Adder_RTL"
   ],
   "policy_enforcement": "not_available",
-  "artifact_quality_score": 0.62,
-  "artifact_quality_notes": "Generated readable notes, but no enforced journal schema or checker-driven recovery."
+  "artifact_quality_score": 0.55,
+  "artifact_quality_notes": "Some artifacts exist, but turn trace and recovery context are missing."
 }

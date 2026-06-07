@@ -37,6 +37,7 @@ def find_manifest_files(search_roots: list[str]) -> list[str]:
 CSV_FIELDS = [
     "dut",
     "ablation_mode",
+    "architecture",
     "workflow_config",
     "backend",
     "backend_class",
@@ -86,7 +87,11 @@ def _derive_ablation_mode(row: dict) -> str:
     if row.get("ablation_mode"):
         return str(row["ablation_mode"])
     workspace = str(row.get("workspace") or "")
-    for marker in ("A_supervised", "B_raw", "C_legacy"):
+    for marker in (
+        "A_agent_for_agent_runtime",
+        "B_single_layer_llm_agent",
+        "C_black_box_agent_backend",
+    ):
         if marker in workspace:
             return marker
     return ""

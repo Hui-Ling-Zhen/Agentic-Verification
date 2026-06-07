@@ -2,19 +2,20 @@
   "schema_version": "3",
   "project": "Agentic-Verification",
   "dut": "Adder",
-  "ablation_mode": "A_supervised",
-  "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised",
+  "ablation_mode": "A_agent_for_agent_runtime",
+  "architecture": "Agent-for-Agent Runtime",
+  "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime",
   "workflow_config": "examples/01-baseline/workflow/default.yaml",
   "backend": "codex_app_server",
-  "backend_class": "synthetic.ablation",
+  "backend_class": "demo.ablation",
   "backend_status": "official",
   "backend_legacy": false,
-  "version": "synthetic",
+  "version": "demo",
   "seed": 42,
   "stage_index": 4,
   "all_completed": true,
   "is_agent_exit": true,
-  "run_status": "simulated_completed",
+  "run_status": "demo_completed",
   "stages_total": 4,
   "stages_passed": 4,
   "stages_skipped": 0,
@@ -136,10 +137,10 @@
     ]
   },
   "duration_sec": 240.0,
-  "started_at": "2026-06-07T03:25:12+00:00",
-  "updated_at": "2026-06-07T03:25:12+00:00",
-  "codex_thread_id": "synthetic-thread",
-  "codex_turn_id": "synthetic-turn-5",
+  "started_at": "2026-06-07T06:44:18+00:00",
+  "updated_at": "2026-06-07T06:44:18+00:00",
+  "codex_thread_id": "demo-thread",
+  "codex_turn_id": "demo-turn-5",
   "codex_turn_status": "completed",
   "codex_token_usage": {
     "total": {
@@ -149,7 +150,7 @@
   "codex_mcp_tool_calls": 8,
   "codex_file_changes": 4,
   "codex_failure_reason": null,
-  "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_events.jsonl",
+  "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/.veriagent/codex_events.jsonl",
   "codex_approval_requests": [],
   "codex_turn_context": {
     "stage_id": "functional_specification_analysis",
@@ -160,7 +161,7 @@
       "status": "failed"
     }
   },
-  "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_turn_context.json",
+  "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/.veriagent/codex_turn_context.json",
   "codex_turn_trace": {
     "plans": [
       {
@@ -198,8 +199,8 @@
   "sandbox_mode": "workspace-write",
   "network_access": "disabled",
   "protected_inputs": [
-    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder",
-    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder_RTL"
+    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/Adder",
+    "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/Adder_RTL"
   ],
   "policy_enforcement": "codex_sandbox_os_permissions",
   "artifact_quality_score": 0.93,

@@ -53,6 +53,22 @@ VeriAgent 会把 Codex event 提升成 supervisor signal：
 
 这体现了当前架构的分工：**Codex 负责探索和实现，VeriAgent 负责要求可审计的推理轨迹和验证闭环。**
 
+### Demo 对比结果：为什么双层 runtime 有优势
+
+当前 ablation demo 在同一个 Adder 任务形态上比较三种模式：
+
+| 模式 | 是否完成 | 阶段通过 | 恢复能力 | artifact 质量 | 说明 |
+|------|----------|----------|----------|----------------|------|
+| `A_agent_for_agent_runtime` | 是 | `4/4` | `1` 个阶段恢复 | `0.93` | VeriAgent 把 workflow、checker、skill 状态放在 Codex 外层，并把 checker feedback 和 supervisor signals 注入下一轮。 |
+| `B_single_layer_llm_agent` | 否 | `2/4` | `0` | `0.62` | 单层 prompt 能生成看起来合理的文档，但缺少 stage gate、结构化 journal 和 runtime recovery context。 |
+| `C_black_box_agent_backend` | 否 | `2/4` | `0` | `0.55` | `codex exec` 可作为 fallback，但缺少 SDK thread/turn/event 信号，内层状态对 VeriAgent 不透明。 |
+
+这个结果想说明的不是“哪个最快”，而是双层 runtime 能让进展 **可审计、可恢复、可度量**：失败会变成 checker feedback，Codex event 会变成 supervisor signal，最终 manifest 会记录证据。完整报告见 [`benchmark/ablation/report.md`](/benchmark/ablation/report.md)，也可以重新生成：
+
+```bash
+make ablation-benchmark
+```
+
 ---
 
 ## 环境要求

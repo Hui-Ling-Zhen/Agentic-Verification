@@ -288,10 +288,10 @@ ablation-simulate:
 	@PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 scripts/ablation_simulate.py
 
 ablation-benchmark: ablation-simulate
-	@PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 scripts/benchmark_collect.py --scan output/ablation_simulated --out benchmark/ablation_summary.csv --json benchmark/ablation_runs.json
+	@PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 scripts/benchmark_collect.py --scan output/ablation_demo --out benchmark/ablation_summary.csv --json benchmark/ablation_runs.json
 
 ablation-clean:
-	rm -rf output/ablation_simulated benchmark/ablation_simulated.json benchmark/ablation_summary.csv benchmark/ablation_runs.json
+	rm -rf output/ablation_demo output/ablation_simulated benchmark/ablation_demo.json benchmark/ablation_simulated.json benchmark/ablation_summary.csv benchmark/ablation_runs.json benchmark/ablation/report.md
 
 benchmark-clean:
 	rm -rf benchmark/summary.csv benchmark/runs.json

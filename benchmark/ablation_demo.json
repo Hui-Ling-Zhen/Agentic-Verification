@@ -1,7 +1,9 @@
 [
   {
-    "ablation_mode": "A_supervised",
+    "ablation_mode": "A_agent_for_agent_runtime",
+    "architecture": "Agent-for-Agent Runtime",
     "all_completed": true,
+    "stages_total": 4,
     "stages_passed": 4,
     "checker_retry_total": 1,
     "codex_turn_total": 5,
@@ -11,8 +13,10 @@
     "failure_reason": null
   },
   {
-    "ablation_mode": "B_raw_codex",
+    "ablation_mode": "B_single_layer_llm_agent",
+    "architecture": "Single-layer LLM/Codex Agent",
     "all_completed": false,
+    "stages_total": 4,
     "stages_passed": 2,
     "checker_retry_total": 0,
     "codex_turn_total": 3,
@@ -22,8 +26,10 @@
     "failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated."
   },
   {
-    "ablation_mode": "C_legacy_codex_exec",
+    "ablation_mode": "C_black_box_agent_backend",
+    "architecture": "Black-box Agent Backend",
     "all_completed": false,
+    "stages_total": 4,
     "stages_passed": 2,
     "checker_retry_total": 2,
     "codex_turn_total": 0,

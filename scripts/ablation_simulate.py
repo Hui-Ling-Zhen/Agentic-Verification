@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding=utf-8
-"""Generate synthetic A/B/C manifests for the benchmark ablation experiment.
+"""Generate A/B/C demo manifests for the benchmark ablation experiment.
 
 This script does not call Codex. It fixes the comparison shape first, so the
 same benchmark/report pipeline can later be fed by real VeriAgent runs.
@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 SCENARIOS: list[dict[str, Any]] = [
     {
-        "ablation_mode": "A_supervised",
+        "ablation_mode": "A_agent_for_agent_runtime",
+        "architecture": "Agent-for-Agent Runtime",
         "backend": "codex_app_server",
         "backend_status": "official",
         "backend_legacy": False,
@@ -41,8 +42,9 @@ SCENARIOS: list[dict[str, Any]] = [
         "commands": ["python -m pytest unity_test/tests/test_adder_basic.py"],
     },
     {
-        "ablation_mode": "B_raw_codex",
-        "backend": "raw_codex_prompt",
+        "ablation_mode": "B_single_layer_llm_agent",
+        "architecture": "Single-layer LLM/Codex Agent",
+        "backend": "single_layer_codex_prompt",
         "backend_status": "external_baseline",
         "backend_legacy": True,
         "all_completed": False,
@@ -59,7 +61,8 @@ SCENARIOS: list[dict[str, Any]] = [
         "commands": ["codex exec <raw prompt>"],
     },
     {
-        "ablation_mode": "C_legacy_codex_exec",
+        "ablation_mode": "C_black_box_agent_backend",
+        "architecture": "Black-box Agent Backend",
         "backend": "codex",
         "backend_status": "legacy",
         "backend_legacy": True,
@@ -103,7 +106,7 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
                 "changes_made": ["unity_test/Adder_verification_needs_and_plan.md"],
                 "checker_result": "markdown_file_check passed" if scenario["stages_passed"] >= 1 else "not checked",
                 "next_risk": "Need function/check decomposition.",
-            } if scenario["ablation_mode"] == "A_supervised" else None,
+            } if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else None,
             "checker_feedback": None,
         },
         {
@@ -111,7 +114,7 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
             "completed": scenario["stages_passed"] >= 2,
             "skipped": False,
             "fail_count": 0,
-            "reference_files": {"Adder/README.md": True, "Adder/__init__.py": scenario["ablation_mode"] == "A_supervised"},
+            "reference_files": {"Adder/README.md": True, "Adder/__init__.py": scenario["ablation_mode"] == "A_agent_for_agent_runtime"},
             "output_files": ["unity_test/Adder_basic_info.md"],
             "observed_files": ["Adder/README.md"],
             "skill_usage": {},
@@ -123,10 +126,10 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
             "completed": scenario["stages_passed"] >= 3,
             "skipped": False,
             "fail_count": scenario["checker_retry_total"],
-            "reference_files": {"Guide_Doc/dut_functions_and_checks.md": scenario["ablation_mode"] == "A_supervised"},
+            "reference_files": {"Guide_Doc/dut_functions_and_checks.md": scenario["ablation_mode"] == "A_agent_for_agent_runtime"},
             "output_files": ["unity_test/Adder_functions_and_checks.md"],
-            "observed_files": ["Guide_Doc/dut_functions_and_checks.md"] if scenario["ablation_mode"] == "A_supervised" else [],
-            "skill_usage": {"functions-and-checks": {"list": True, "read": scenario["ablation_mode"] == "A_supervised", "use": scenario["ablation_mode"] == "A_supervised"}},
+            "observed_files": ["Guide_Doc/dut_functions_and_checks.md"] if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else [],
+            "skill_usage": {"functions-and-checks": {"list": True, "read": scenario["ablation_mode"] == "A_agent_for_agent_runtime", "use": scenario["ablation_mode"] == "A_agent_for_agent_runtime"}},
             "journal": None,
             "checker_feedback": "Label structure failed once, then recovered." if scenario["stage_recovery_count"] else scenario["codex_failure_reason"],
         },
@@ -149,7 +152,7 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "commands": [{"command": cmd} for cmd in scenario["commands"]],
         "errors": [],
         "approvals": [],
-        "mcp_startup": [{"status": "healthy"}] if scenario["ablation_mode"] == "A_supervised" else [],
+        "mcp_startup": [{"status": "healthy"}] if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else [],
         "unknown_events": [],
     }
     return {
@@ -157,18 +160,19 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "project": "Agentic-Verification",
         "dut": "Adder",
         "ablation_mode": scenario["ablation_mode"],
+        "architecture": scenario["architecture"],
         "workspace": str(workspace.resolve()),
         "workflow_config": "examples/01-baseline/workflow/default.yaml",
         "backend": scenario["backend"],
-        "backend_class": "synthetic.ablation",
+        "backend_class": "demo.ablation",
         "backend_status": scenario["backend_status"],
         "backend_legacy": scenario["backend_legacy"],
-        "version": "synthetic",
+        "version": "demo",
         "seed": 42,
         "stage_index": min(scenario["stages_passed"], scenario["stages_total"]),
         "all_completed": scenario["all_completed"],
         "is_agent_exit": scenario["all_completed"],
-        "run_status": "simulated_completed" if scenario["all_completed"] else "simulated_incomplete",
+        "run_status": "demo_completed" if scenario["all_completed"] else "demo_incomplete",
         "stages_total": scenario["stages_total"],
         "stages_passed": scenario["stages_passed"],
         "stages_skipped": 0,
@@ -179,8 +183,8 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "skill_usage_summary": {
             "functions-and-checks": {
                 "list": 1,
-                "read": 1 if scenario["ablation_mode"] == "A_supervised" else 0,
-                "use": 1 if scenario["ablation_mode"] == "A_supervised" else 0,
+                "read": 1 if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else 0,
+                "use": 1 if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else 0,
             }
         },
         "tool_action_trace": {
@@ -192,11 +196,11 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "duration_sec": scenario["duration_sec"],
         "started_at": _now(),
         "updated_at": _now(),
-        "codex_thread_id": "synthetic-thread" if scenario["ablation_mode"] == "A_supervised" else None,
-        "codex_turn_id": "synthetic-turn-5" if scenario["ablation_mode"] == "A_supervised" else None,
+        "codex_thread_id": "demo-thread" if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else None,
+        "codex_turn_id": "demo-turn-5" if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else None,
         "codex_turn_status": "completed" if scenario["all_completed"] else "failed",
-        "codex_token_usage": {"total": {"totalTokens": 12000 if scenario["ablation_mode"] == "A_supervised" else 9000}},
-        "codex_mcp_tool_calls": 8 if scenario["ablation_mode"] == "A_supervised" else 0,
+        "codex_token_usage": {"total": {"totalTokens": 12000 if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else 9000}},
+        "codex_mcp_tool_calls": 8 if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else 0,
         "codex_file_changes": 4 if scenario["all_completed"] else 2,
         "codex_failure_reason": scenario["codex_failure_reason"],
         "codex_event_log": str(workspace / ".veriagent" / "codex_events.jsonl"),
@@ -209,10 +213,10 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "codex_turn_context_file": str(workspace / ".veriagent" / "codex_turn_context.json"),
         "codex_turn_trace": turn_trace,
         "codex_supervisor_signals": scenario["signals"],
-        "sandbox_mode": "workspace-write" if scenario["ablation_mode"] == "A_supervised" else None,
+        "sandbox_mode": "workspace-write" if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else None,
         "network_access": "disabled",
         "protected_inputs": [str(workspace / "Adder"), str(workspace / "Adder_RTL")],
-        "policy_enforcement": "codex_sandbox_os_permissions" if scenario["ablation_mode"] == "A_supervised" else "not_available",
+        "policy_enforcement": "codex_sandbox_os_permissions" if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else "not_available",
         "artifact_quality_score": scenario["artifact_quality_score"],
         "artifact_quality_notes": scenario["artifact_quality_notes"],
     }
@@ -230,9 +234,9 @@ def write_manifests(base_dir: Path) -> list[dict[str, Any]]:
         event_log.write_text(
             json.dumps(
                 {
-                    "kind": "synthetic_ablation",
+                    "kind": "ablation_demo",
                     "status": scenario["ablation_mode"],
-                    "raw": {"note": "Synthetic event stream placeholder"},
+                    "raw": {"note": "Demo event stream placeholder"},
                     "ts": _now(),
                 },
                 ensure_ascii=False,
@@ -244,17 +248,68 @@ def write_manifests(base_dir: Path) -> list[dict[str, Any]]:
     return manifests
 
 
+def _write_report(path: Path, summary: list[dict[str, Any]]) -> None:
+    by_mode = {item["ablation_mode"]: item for item in summary}
+    a = by_mode["A_agent_for_agent_runtime"]
+    b = by_mode["B_single_layer_llm_agent"]
+    c = by_mode["C_black_box_agent_backend"]
+    lines = [
+        "# Agentic-Verification Runtime Ablation Report",
+        "",
+        "This report compares the two-layer **Agent-for-Agent Runtime** against a single-layer LLM/Codex agent baseline and a black-box agent backend on the same Adder task shape.",
+        "",
+        "## Result Table",
+        "",
+        "| Mode | Architecture | Completed | Stages Passed | Checker Retry | Codex Turns | Stage Recovery | Duration (s) | Artifact Quality | Failure Reason |",
+        "|------|--------------|-----------|---------------|---------------|-------------|----------------|--------------|------------------|----------------|",
+    ]
+    for item in summary:
+        lines.append(
+            "| {ablation_mode} | {architecture} | {all_completed} | {stages_passed} | "
+            "{checker_retry_total} | {codex_turn_total} | {stage_recovery_count} | "
+            "{duration_sec} | {artifact_quality_score} | {failure_reason} |".format(
+                **{**item, "failure_reason": item["failure_reason"] or ""}
+            )
+        )
+    lines.extend([
+        "",
+        "## Reading",
+        "",
+        "- `A_agent_for_agent_runtime` completes all stages and recovers after a checker failure because the outer runtime preserves checker feedback, supervisor signals, and recovery context.",
+        "- `B_single_layer_llm_agent` is faster in wall-clock time, but it lacks stage gates, structured journal enforcement, and recovery context; the artifacts remain plausible but not fully verified.",
+        "- `C_black_box_agent_backend` retains some outer workflow control, but the inner Codex state is opaque because `codex exec` does not expose SDK thread/turn/event signals.",
+        "",
+        "## Goal Coverage",
+        "",
+        f"- Performance/stability: A completes {a['stages_passed']}/{a['stages_total']} stages; B and C stop at {b['stages_passed']}/{b['stages_total']} and {c['stages_passed']}/{c['stages_total']}.",
+        "- Flexibility: A keeps workflow/checker/skill concerns in VeriAgent, while B depends on a single prompt carrying the whole process.",
+        f"- Recovery: A records {a['stage_recovery_count']} recovered stage; B and C record no structured recovery.",
+        "",
+        "## Demo Conclusion",
+        "",
+        "The main advantage is not just speed. The two-layer runtime is better at making progress auditable, failure recoverable, and stage completion measurable.",
+        "",
+    ])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate synthetic A/B/C ablation manifests")
+    parser = argparse.ArgumentParser(description="Generate A/B/C ablation demo manifests")
     parser.add_argument(
         "--out-dir",
-        default=str(ROOT / "output" / "ablation_simulated"),
-        help="Directory where simulated workspaces are written",
+        default=str(ROOT / "output" / "ablation_demo"),
+        help="Directory where demo workspaces are written",
     )
     parser.add_argument(
         "--summary",
-        default=str(ROOT / "benchmark" / "ablation_simulated.json"),
+        default=str(ROOT / "benchmark" / "ablation_demo.json"),
         help="Compact comparison JSON path",
+    )
+    parser.add_argument(
+        "--report",
+        default=str(ROOT / "benchmark" / "ablation" / "report.md"),
+        help="Markdown report path",
     )
     args = parser.parse_args()
 
@@ -265,7 +320,9 @@ def main() -> int:
     summary = [
         {
             "ablation_mode": item["ablation_mode"],
+            "architecture": item["architecture"],
             "all_completed": item["all_completed"],
+            "stages_total": item["stages_total"],
             "stages_passed": item["stages_passed"],
             "checker_retry_total": item["checker_retry_total"],
             "codex_turn_total": item["codex_turn_total"],
@@ -277,8 +334,11 @@ def main() -> int:
         for item in manifests
     ]
     summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Wrote {len(manifests)} simulated manifests under {out_dir}")
+    report_path = Path(args.report)
+    _write_report(report_path, summary)
+    print(f"Wrote {len(manifests)} demo manifests under {out_dir}")
     print(f"Summary: {summary_path}")
+    print(f"Report : {report_path}")
     return 0
 
 

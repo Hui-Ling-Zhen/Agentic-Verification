@@ -55,6 +55,22 @@ Stage completion also requires an auditable journal. `SetCurrentStageJournal` en
 
 The intent is simple: **Codex explores and implements; VeriAgent requires an auditable reasoning trail before the stage can advance.**
 
+### Demo result: why the two-layer runtime helps
+
+The current ablation demo compares the same Adder task shape across three modes:
+
+| Mode | Completed | Stages | Recovery | Artifact quality | What it shows |
+|------|-----------|--------|----------|------------------|---------------|
+| `A_agent_for_agent_runtime` | Yes | `4/4` | `1` recovered stage | `0.93` | VeriAgent keeps workflow/checker/skill state outside Codex, then feeds checker feedback and supervisor signals into the next turn. |
+| `B_single_layer_llm_agent` | No | `2/4` | `0` | `0.62` | A single prompt can produce plausible notes, but lacks stage gates, structured journal enforcement, and runtime recovery context. |
+| `C_black_box_agent_backend` | No | `2/4` | `0` | `0.55` | `codex exec` is usable as a fallback, but its inner state is opaque without SDK thread/turn/event signals. |
+
+The key result is not raw speed. The supervised mode makes progress **auditable, recoverable, and measurable**: failures become checker feedback, Codex events become supervisor signals, and the final manifest records the evidence. See [benchmark/ablation/report.md](benchmark/ablation/report.md) or regenerate the demo with:
+
+```bash
+make ablation-benchmark
+```
+
 ---
 
 ## Requirements

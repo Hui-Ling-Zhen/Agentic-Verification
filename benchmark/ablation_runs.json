@@ -6,19 +6,20 @@
       "schema_version": "3",
       "project": "Agentic-Verification",
       "dut": "Adder",
-      "ablation_mode": "A_supervised",
-      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised",
+      "ablation_mode": "A_agent_for_agent_runtime",
+      "architecture": "Agent-for-Agent Runtime",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime",
       "workflow_config": "examples/01-baseline/workflow/default.yaml",
       "backend": "codex_app_server",
-      "backend_class": "synthetic.ablation",
+      "backend_class": "demo.ablation",
       "backend_status": "official",
       "backend_legacy": false,
-      "version": "synthetic",
+      "version": "demo",
       "seed": 42,
       "stage_index": 4,
       "all_completed": true,
       "is_agent_exit": true,
-      "run_status": "simulated_completed",
+      "run_status": "demo_completed",
       "stages_total": 4,
       "stages_passed": 4,
       "stages_skipped": 0,
@@ -140,10 +141,10 @@
         ]
       },
       "duration_sec": 240.0,
-      "started_at": "2026-06-07T03:25:12+00:00",
-      "updated_at": "2026-06-07T03:25:12+00:00",
-      "codex_thread_id": "synthetic-thread",
-      "codex_turn_id": "synthetic-turn-5",
+      "started_at": "2026-06-07T06:44:18+00:00",
+      "updated_at": "2026-06-07T06:44:18+00:00",
+      "codex_thread_id": "demo-thread",
+      "codex_turn_id": "demo-turn-5",
       "codex_turn_status": "completed",
       "codex_token_usage": {
         "total": {
@@ -153,7 +154,7 @@
       "codex_mcp_tool_calls": 8,
       "codex_file_changes": 4,
       "codex_failure_reason": null,
-      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_events.jsonl",
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/.veriagent/codex_events.jsonl",
       "codex_approval_requests": [],
       "codex_turn_context": {
         "stage_id": "functional_specification_analysis",
@@ -164,7 +165,7 @@
           "status": "failed"
         }
       },
-      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_turn_context.json",
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/.veriagent/codex_turn_context.json",
       "codex_turn_trace": {
         "plans": [
           {
@@ -202,8 +203,8 @@
       "sandbox_mode": "workspace-write",
       "network_access": "disabled",
       "protected_inputs": [
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder",
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder_RTL"
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/A_agent_for_agent_runtime/Adder_RTL"
       ],
       "policy_enforcement": "codex_sandbox_os_permissions",
       "artifact_quality_score": 0.93,
@@ -215,19 +216,20 @@
       "schema_version": "3",
       "project": "Agentic-Verification",
       "dut": "Adder",
-      "ablation_mode": "B_raw_codex",
-      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex",
+      "ablation_mode": "B_single_layer_llm_agent",
+      "architecture": "Single-layer LLM/Codex Agent",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/B_single_layer_llm_agent",
       "workflow_config": "examples/01-baseline/workflow/default.yaml",
-      "backend": "raw_codex_prompt",
-      "backend_class": "synthetic.ablation",
+      "backend": "single_layer_codex_prompt",
+      "backend_class": "demo.ablation",
       "backend_status": "external_baseline",
       "backend_legacy": true,
-      "version": "synthetic",
+      "version": "demo",
       "seed": 42,
       "stage_index": 2,
       "all_completed": false,
       "is_agent_exit": false,
-      "run_status": "simulated_incomplete",
+      "run_status": "demo_incomplete",
       "stages_total": 4,
       "stages_passed": 2,
       "stages_skipped": 0,
@@ -333,8 +335,8 @@
         "mcp_startup": []
       },
       "duration_sec": 180.0,
-      "started_at": "2026-06-07T03:25:12+00:00",
-      "updated_at": "2026-06-07T03:25:12+00:00",
+      "started_at": "2026-06-07T06:44:18+00:00",
+      "updated_at": "2026-06-07T06:44:18+00:00",
       "codex_thread_id": null,
       "codex_turn_id": null,
       "codex_turn_status": "failed",
@@ -346,14 +348,14 @@
       "codex_mcp_tool_calls": 0,
       "codex_file_changes": 2,
       "codex_failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated.",
-      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_events.jsonl",
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/B_single_layer_llm_agent/.veriagent/codex_events.jsonl",
       "codex_approval_requests": [],
       "codex_turn_context": {
         "stage_id": "functional_specification_analysis",
         "checker_feedback": [],
         "recovery_context": {}
       },
-      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_turn_context.json",
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/B_single_layer_llm_agent/.veriagent/codex_turn_context.json",
       "codex_turn_trace": {
         "plans": [
           {
@@ -381,8 +383,8 @@
       "sandbox_mode": null,
       "network_access": "disabled",
       "protected_inputs": [
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder",
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder_RTL"
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/B_single_layer_llm_agent/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/B_single_layer_llm_agent/Adder_RTL"
       ],
       "policy_enforcement": "not_available",
       "artifact_quality_score": 0.62,
@@ -394,19 +396,20 @@
       "schema_version": "3",
       "project": "Agentic-Verification",
       "dut": "Adder",
-      "ablation_mode": "C_legacy_codex_exec",
-      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec",
+      "ablation_mode": "C_black_box_agent_backend",
+      "architecture": "Black-box Agent Backend",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend",
       "workflow_config": "examples/01-baseline/workflow/default.yaml",
       "backend": "codex",
-      "backend_class": "synthetic.ablation",
+      "backend_class": "demo.ablation",
       "backend_status": "legacy",
       "backend_legacy": true,
-      "version": "synthetic",
+      "version": "demo",
       "seed": 42,
       "stage_index": 2,
       "all_completed": false,
       "is_agent_exit": false,
-      "run_status": "simulated_incomplete",
+      "run_status": "demo_incomplete",
       "stages_total": 4,
       "stages_passed": 2,
       "stages_skipped": 0,
@@ -512,8 +515,8 @@
         "mcp_startup": []
       },
       "duration_sec": 310.0,
-      "started_at": "2026-06-07T03:25:12+00:00",
-      "updated_at": "2026-06-07T03:25:12+00:00",
+      "started_at": "2026-06-07T06:44:18+00:00",
+      "updated_at": "2026-06-07T06:44:18+00:00",
       "codex_thread_id": null,
       "codex_turn_id": null,
       "codex_turn_status": "failed",
@@ -525,14 +528,14 @@
       "codex_mcp_tool_calls": 0,
       "codex_file_changes": 2,
       "codex_failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state.",
-      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/.veriagent/codex_events.jsonl",
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/.veriagent/codex_events.jsonl",
       "codex_approval_requests": [],
       "codex_turn_context": {
         "stage_id": "functional_specification_analysis",
         "checker_feedback": [],
         "recovery_context": {}
       },
-      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/.veriagent/codex_turn_context.json",
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/.veriagent/codex_turn_context.json",
       "codex_turn_trace": {
         "plans": [
           {
@@ -566,8 +569,8 @@
       "sandbox_mode": null,
       "network_access": "disabled",
       "protected_inputs": [
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/Adder",
-        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/Adder_RTL"
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_demo/C_black_box_agent_backend/Adder_RTL"
       ],
       "policy_enforcement": "not_available",
       "artifact_quality_score": 0.55,
