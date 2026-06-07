@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding=utf-8
-"""Generate synthetic A/B/C ablation manifests for the runtime-demo case.
+"""Generate synthetic A/B/C manifests for the benchmark ablation experiment.
 
 This script does not call Codex. It fixes the comparison shape first, so the
 same benchmark/report pipeline can later be fed by real VeriAgent runs.

@@ -10,7 +10,6 @@
 
 ## 推荐学习顺序
 
-0. [Runtime Demo / Ablation](00-runtime-demo/README.md) — `make ablation-benchmark`
 1. [Adder UT 基线](01-baseline/adder/README.md) — `make example-baseline`
 2. [Mux bug 分析](01-baseline/mux/README.md) — `make example-bug`
 3. [Adder 增量](01-baseline/increment/README.md) — `make example-increment`（需先完成 1）
@@ -20,13 +19,14 @@
 7. [Formal arbiter](05-formal/arbiter/README.md) — `make example-formal`
 8. [GenSpec / Gencov](06-planning/README.md) — 高级规划（可选）
 
+如果想比较 supervised Codex / raw Codex / legacy Codex 的双层 runtime 优势，请看 [`benchmark/ablation/README.md`](../benchmark/ablation/README.md)。这不是新的 DUT case，而是基于现有 case 的 benchmark/ablation 实验。
+
 ---
 
 ## 全部 Case 一览
 
 | # | Case | README | 根目录命令 | 难度 |
 |---|------|--------|------------|:----:|
-| 0 | Runtime ablation demo | [00-runtime-demo/README.md](00-runtime-demo/README.md) | `make ablation-benchmark` | ⭐ |
 | 1 | Adder | [01-baseline/adder/README.md](01-baseline/adder/README.md) | `make example-baseline` | ⭐ |
 | 2 | Mux | [01-baseline/mux/README.md](01-baseline/mux/README.md) | `make example-bug` | ⭐⭐ |
 | 3 | Adder increment | [01-baseline/increment/README.md](01-baseline/increment/README.md) | `make example-increment` | ⭐⭐ |

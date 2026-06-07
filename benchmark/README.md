@@ -103,6 +103,8 @@ Phase-2 evaluation compares three modes on the same small DUT:
 | `B_raw_codex` | Raw Codex prompt baseline without the outer stage/checker loop |
 | `C_legacy_codex_exec` | Compatibility-only opaque `codex exec` style path |
 
+Full experiment notes: [`benchmark/ablation/README.md`](ablation/README.md).
+
 To validate the comparison shape without spending model/runtime cost:
 
 ```bash

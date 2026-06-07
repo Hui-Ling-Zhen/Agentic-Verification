@@ -1,6 +1,8 @@
-# Runtime Demo — Supervised Codex Ablation
+# Runtime Ablation — Supervised Codex vs Raw / Legacy
 
-This demo is the phase-2 entry point for proving why Agentic-Verification uses a **two-layer agent runtime** instead of a plain LLM wrapper.
+This is the phase-2 benchmark entry point for proving why Agentic-Verification uses a **two-layer agent runtime** instead of a plain LLM wrapper.
+
+This experiment belongs under `benchmark/` rather than `examples/`: it is not a new DUT case. It compares runtime modes on existing cases such as Adder or Mux.
 
 The first DUT is **Adder** because it is small, deterministic, and already uses the baseline workflow/checker path. Mux is better for a later bug-discovery demo, but Adder is the smallest case for measuring lifecycle, retry, recovery, and artifact quality.
 
