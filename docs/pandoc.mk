@@ -5,11 +5,11 @@
 DOC := veriagent-doc
 VERSION := $(shell git describe --always --dirty --tags 2>/dev/null || git rev-parse --short HEAD)
 
-# Auto-generate SRCS by sorting filenames (by basename) with numeric prefixes
-SRCS := $(shell find docs/content -type f -name "*.md" -printf "%p\n" | sort)
+# Auto-generate SRCS by sorting filenames (portable across GNU/BSD find)
+SRCS := $(shell find docs/content -type f -name "*.md" | sort)
 
 # Auto-generate resource paths from directories containing images
-RESOURCE_DIRS := $(shell find docs/content -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.svg" \) -printf "%h\n" | sort -u | tr '\n' ':' | sed 's/:$$//')
+RESOURCE_DIRS := $(shell find docs/content -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.svg" \) | xargs -n 1 dirname 2>/dev/null | sort -u | tr '\n' ':' | sed 's/:$$//')
 RESOURCE_PATH := .:docs:docs/content:$(RESOURCE_DIRS)
 
 # -------- Pandoc general parameters --------

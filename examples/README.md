@@ -1,5 +1,13 @@
 # Examples 索引
 
+`examples/` 只放 **真实 DUT 验证 case**：每个 case 都有 DUT、workflow、checker/skill 入口，并可以通过 `make example-*`、`make mcp_*` 或 `make formal_mcp_*` 运行。
+
+本目录不放 benchmark/ablation 实验设计，也不放 synthetic 数据生成脚本：
+
+- A/B/C runtime 对比实验在 [`benchmark/ablation/README.md`](../benchmark/ablation/README.md)。
+- benchmark 聚合说明在 [`benchmark/README.md`](../benchmark/README.md)。
+- 自动化脚本说明在 [`scripts/README.md`](../scripts/README.md)。
+
 每个 **case** 的说明在其目录下的 **`README.md`**。本文件只做导航，不重复 case 内容。
 
 操作与安装见仓库根目录 [README.zh.md](../README.zh.md) / [README.en.md](../README.en.md)。

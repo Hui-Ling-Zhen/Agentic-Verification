@@ -140,8 +140,8 @@
         ]
       },
       "duration_sec": 240.0,
-      "started_at": "2026-06-07T02:41:29+00:00",
-      "updated_at": "2026-06-07T02:41:29+00:00",
+      "started_at": "2026-06-07T03:25:12+00:00",
+      "updated_at": "2026-06-07T03:25:12+00:00",
       "codex_thread_id": "synthetic-thread",
       "codex_turn_id": "synthetic-turn-5",
       "codex_turn_status": "completed",
@@ -333,8 +333,8 @@
         "mcp_startup": []
       },
       "duration_sec": 180.0,
-      "started_at": "2026-06-07T02:41:29+00:00",
-      "updated_at": "2026-06-07T02:41:29+00:00",
+      "started_at": "2026-06-07T03:25:12+00:00",
+      "updated_at": "2026-06-07T03:25:12+00:00",
       "codex_thread_id": null,
       "codex_turn_id": null,
       "codex_turn_status": "failed",
@@ -512,8 +512,8 @@
         "mcp_startup": []
       },
       "duration_sec": 310.0,
-      "started_at": "2026-06-07T02:41:29+00:00",
-      "updated_at": "2026-06-07T02:41:29+00:00",
+      "started_at": "2026-06-07T03:25:12+00:00",
+      "updated_at": "2026-06-07T03:25:12+00:00",
       "codex_thread_id": null,
       "codex_turn_id": null,
       "codex_turn_status": "failed",
