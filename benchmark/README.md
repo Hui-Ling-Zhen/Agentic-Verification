@@ -152,10 +152,13 @@ This writes demo manifests under `output/ablation_demo/` and aggregates:
 The important columns are:
 
 - `all_completed`
+- `stage_measurement_mode`
 - `stages_passed`
 - `checker_retry_total`
 - `codex_turn_total`
 - `stage_recovery_count`
+- `stage_recovery_observable`
+- `stage_recovery_note`
 - `duration_sec`
 - `codex_failure_reason`
 - `artifact_quality_score`

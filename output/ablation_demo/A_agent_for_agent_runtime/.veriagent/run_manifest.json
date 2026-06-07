@@ -16,6 +16,7 @@
   "all_completed": true,
   "is_agent_exit": true,
   "run_status": "demo_completed",
+  "stage_measurement_mode": "runtime_observed",
   "stages_total": 4,
   "stages_passed": 4,
   "stages_skipped": 0,
@@ -109,6 +110,8 @@
   "codex_turn_total": 5,
   "checker_retry_total": 1,
   "stage_recovery_count": 1,
+  "stage_recovery_observable": true,
+  "stage_recovery_note": "One checker-failed stage recovered through structured feedback and supervisor signals.",
   "skill_usage_summary": {
     "functions-and-checks": {
       "list": 1,
@@ -137,8 +140,8 @@
     ]
   },
   "duration_sec": 240.0,
-  "started_at": "2026-06-07T07:51:30+00:00",
-  "updated_at": "2026-06-07T07:51:30+00:00",
+  "started_at": "2026-06-07T08:27:48+00:00",
+  "updated_at": "2026-06-07T08:27:48+00:00",
   "codex_thread_id": "demo-thread",
   "codex_turn_id": "demo-turn-5",
   "codex_turn_status": "completed",

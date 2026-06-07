@@ -59,11 +59,13 @@ The intent is simple: **Codex explores and implements; VeriAgent requires an aud
 
 The current ablation demo compares the same Adder task shape across three modes:
 
-| Mode | Completed | Stages | Recovery | Artifact quality | What it shows |
-|------|-----------|--------|----------|------------------|---------------|
-| `A_agent_for_agent_runtime` | Yes | `4/4` | `1` recovered stage | `0.93` | VeriAgent keeps workflow/checker/skill state outside Codex, then feeds checker feedback and supervisor signals into the next turn. |
-| `B_single_layer_llm_agent` | No | `2/4` | `0` | `0.62` | A single prompt can produce plausible notes, but lacks stage gates, structured journal enforcement, and runtime recovery context. |
-| `C_black_box_agent_backend` | No | `2/4` | `0` | `0.55` | `codex exec` is usable as a fallback, but its inner state is opaque without SDK thread/turn/event signals. |
+| Mode | Stage measurement | Completed | Stages | Recovery | Artifact quality | What it shows |
+|------|-------------------|-----------|--------|----------|------------------|---------------|
+| `A_agent_for_agent_runtime` | Runtime-observed | Yes | `4/4` | `1` recovered stage | `0.93` | VeriAgent keeps workflow/checker/skill state outside Codex, then feeds checker feedback and supervisor signals into the next turn. |
+| `B_single_layer_llm_agent` | Post-hoc artifact review | No | `2/4` | `N/A` | `0.62` | A single prompt can produce plausible notes, but stage recovery is not observable without the outer stage/checker runtime. |
+| `C_black_box_agent_backend` | Runtime-observed | No | `2/4` | `0` | `0.55` | `codex exec` is usable as a fallback, but its inner state is opaque without SDK thread/turn/event signals. |
+
+`Recovery` means a VeriAgent-observed failed stage later completed after structured checker/supervisor feedback. For the single-layer LLM baseline this is `N/A`, not `0`, because there is no runtime stage loop observing recovery.
 
 Artifact quality is a weighted 0-1 score: stage completion `0.30`, checker quality `0.20`, required artifact completeness `0.20`, journal/evidence auditability `0.15`, recovery feedback usage `0.10`, and reproducibility/trace quality `0.05`.
 

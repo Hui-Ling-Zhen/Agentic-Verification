@@ -57,11 +57,13 @@ VeriAgent 会把 Codex event 提升成 supervisor signal：
 
 当前 ablation demo 在同一个 Adder 任务形态上比较三种模式：
 
-| 模式 | 是否完成 | 阶段通过 | 恢复能力 | artifact 质量 | 说明 |
-|------|----------|----------|----------|----------------|------|
-| `A_agent_for_agent_runtime` | 是 | `4/4` | `1` 个阶段恢复 | `0.93` | VeriAgent 把 workflow、checker、skill 状态放在 Codex 外层，并把 checker feedback 和 supervisor signals 注入下一轮。 |
-| `B_single_layer_llm_agent` | 否 | `2/4` | `0` | `0.62` | 单层 prompt 能生成看起来合理的文档，但缺少 stage gate、结构化 journal 和 runtime recovery context。 |
-| `C_black_box_agent_backend` | 否 | `2/4` | `0` | `0.55` | `codex exec` 可作为 fallback，但缺少 SDK thread/turn/event 信号，内层状态对 VeriAgent 不透明。 |
+| 模式 | 阶段度量方式 | 是否完成 | 阶段通过 | 恢复能力 | artifact 质量 | 说明 |
+|------|--------------|----------|----------|----------|----------------|------|
+| `A_agent_for_agent_runtime` | Runtime-observed | 是 | `4/4` | `1` 个阶段恢复 | `0.93` | VeriAgent 把 workflow、checker、skill 状态放在 Codex 外层，并把 checker feedback 和 supervisor signals 注入下一轮。 |
+| `B_single_layer_llm_agent` | Post-hoc artifact review | 否 | `2/4` | `N/A` | `0.62` | 单层 prompt 能生成看起来合理的文档，但没有外层 stage/checker runtime，因此 stage recovery 不可观测。 |
+| `C_black_box_agent_backend` | Runtime-observed | 否 | `2/4` | `0` | `0.55` | `codex exec` 可作为 fallback，但缺少 SDK thread/turn/event 信号，内层状态对 VeriAgent 不透明。 |
+
+这里的“恢复能力”指：VeriAgent 观测到某个 stage 因 checker 失败，然后通过结构化 feedback/supervisor signals 让该 stage 后续完成。对单层 LLM baseline 来说，这个指标是 `N/A` 而不是 `0`，因为没有 runtime stage loop 可以观测恢复过程。
 
 Artifact 质量是 0-1 加权分：stage completion `0.30`、checker quality `0.20`、required artifact completeness `0.20`、journal/evidence auditability `0.15`、recovery feedback usage `0.10`、reproducibility/trace quality `0.05`。
 

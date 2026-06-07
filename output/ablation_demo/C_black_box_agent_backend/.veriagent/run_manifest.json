@@ -16,6 +16,7 @@
   "all_completed": false,
   "is_agent_exit": false,
   "run_status": "demo_incomplete",
+  "stage_measurement_mode": "runtime_observed",
   "stages_total": 4,
   "stages_passed": 2,
   "stages_skipped": 0,
@@ -97,6 +98,8 @@
   "codex_turn_total": 0,
   "checker_retry_total": 2,
   "stage_recovery_count": 0,
+  "stage_recovery_observable": true,
+  "stage_recovery_note": "No structured recovery observed because the inner codex exec state is opaque.",
   "skill_usage_summary": {
     "functions-and-checks": {
       "list": 1,
@@ -121,8 +124,8 @@
     "mcp_startup": []
   },
   "duration_sec": 310.0,
-  "started_at": "2026-06-07T07:51:30+00:00",
-  "updated_at": "2026-06-07T07:51:30+00:00",
+  "started_at": "2026-06-07T08:27:48+00:00",
+  "updated_at": "2026-06-07T08:27:48+00:00",
   "codex_thread_id": null,
   "codex_turn_id": null,
   "codex_turn_status": "failed",

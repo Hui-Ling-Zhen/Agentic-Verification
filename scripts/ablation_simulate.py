@@ -55,11 +55,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "backend_status": "official",
         "backend_legacy": False,
         "all_completed": True,
+        "stage_measurement_mode": "runtime_observed",
         "stages_passed": 4,
         "stages_total": 4,
         "checker_retry_total": 1,
         "codex_turn_total": 5,
         "stage_recovery_count": 1,
+        "stage_recovery_observable": True,
+        "stage_recovery_note": "One checker-failed stage recovered through structured feedback and supervisor signals.",
         "duration_sec": 240.0,
         "codex_failure_reason": None,
         "quality_components": {
@@ -83,11 +86,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "backend_status": "external_baseline",
         "backend_legacy": True,
         "all_completed": False,
+        "stage_measurement_mode": "post_hoc_artifact_review",
         "stages_passed": 2,
         "stages_total": 4,
         "checker_retry_total": 0,
         "codex_turn_total": 3,
-        "stage_recovery_count": 0,
+        "stage_recovery_count": None,
+        "stage_recovery_observable": False,
+        "stage_recovery_note": "N/A: no outer stage/checker runtime observes failed-stage recovery; stages are judged post-hoc.",
         "duration_sec": 180.0,
         "codex_failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated.",
         "quality_components": {
@@ -109,11 +115,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "backend_status": "legacy",
         "backend_legacy": True,
         "all_completed": False,
+        "stage_measurement_mode": "runtime_observed",
         "stages_passed": 2,
         "stages_total": 4,
         "checker_retry_total": 2,
         "codex_turn_total": 0,
         "stage_recovery_count": 0,
+        "stage_recovery_observable": True,
+        "stage_recovery_note": "No structured recovery observed because the inner codex exec state is opaque.",
         "duration_sec": 310.0,
         "codex_failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state.",
         "quality_components": {
@@ -156,6 +165,13 @@ def _artifact_quality_breakdown(scenario: dict[str, Any]) -> dict[str, Any]:
         "score": round(total, 2),
         "rubric": weighted,
     }
+
+
+def _display_recovery(item: dict[str, Any]) -> str:
+    if not item.get("stage_recovery_observable", True):
+        return "N/A"
+    value = item.get("stage_recovery_count")
+    return "N/A" if value is None else str(value)
 
 
 def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str, Any]:
@@ -244,6 +260,7 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "all_completed": scenario["all_completed"],
         "is_agent_exit": scenario["all_completed"],
         "run_status": "demo_completed" if scenario["all_completed"] else "demo_incomplete",
+        "stage_measurement_mode": scenario["stage_measurement_mode"],
         "stages_total": scenario["stages_total"],
         "stages_passed": scenario["stages_passed"],
         "stages_skipped": 0,
@@ -251,6 +268,8 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "codex_turn_total": scenario["codex_turn_total"],
         "checker_retry_total": scenario["checker_retry_total"],
         "stage_recovery_count": scenario["stage_recovery_count"],
+        "stage_recovery_observable": scenario["stage_recovery_observable"],
+        "stage_recovery_note": scenario["stage_recovery_note"],
         "skill_usage_summary": {
             "functions-and-checks": {
                 "list": 1,
@@ -332,17 +351,25 @@ def _write_report(path: Path, summary: list[dict[str, Any]]) -> None:
         "",
         "## Result Table",
         "",
-        "| Mode | Architecture | Completed | Stages Passed | Checker Retry | Codex Turns | Stage Recovery | Duration (s) | Artifact Quality | Failure Reason |",
-        "|------|--------------|-----------|---------------|---------------|-------------|----------------|--------------|------------------|----------------|",
+        "| Mode | Architecture | Stage Measurement | Completed | Stages Passed | Checker Retry | Codex Turns | Stage Recovery | Duration (s) | Artifact Quality | Failure Reason |",
+        "|------|--------------|-------------------|-----------|---------------|---------------|-------------|----------------|--------------|------------------|----------------|",
     ]
     for item in summary:
         lines.append(
-            "| {ablation_mode} | {architecture} | {all_completed} | {stages_passed} | "
-            "{checker_retry_total} | {codex_turn_total} | {stage_recovery_count} | "
+            "| {ablation_mode} | {architecture} | {stage_measurement_mode} | {all_completed} | {stages_passed} | "
+            "{checker_retry_total} | {codex_turn_total} | {stage_recovery} | "
             "{duration_sec} | {artifact_quality_score} | {failure_reason} |".format(
-                **{**item, "failure_reason": item["failure_reason"] or ""}
+                **{
+                    **item,
+                    "stage_recovery": _display_recovery(item),
+                    "failure_reason": item["failure_reason"] or "",
+                }
             )
         )
+    lines.extend([
+        "",
+        "`stage_recovery_count` means a VeriAgent-observed failed stage later completed after structured checker/supervisor feedback. For `B_single_layer_llm_agent`, this is `N/A` because there is no outer stage/checker runtime observing recovery; its stages are judged post-hoc from artifacts.",
+    ])
     lines.extend([
         "",
         "## Artifact Quality Rubric",
@@ -383,14 +410,14 @@ def _write_report(path: Path, summary: list[dict[str, Any]]) -> None:
         "## Reading",
         "",
         "- `A_agent_for_agent_runtime` completes all stages and recovers after a checker failure because the outer runtime preserves checker feedback, supervisor signals, and recovery context.",
-        "- `B_single_layer_llm_agent` is faster in wall-clock time, but it lacks stage gates, structured journal enforcement, and recovery context; the artifacts remain plausible but not fully verified.",
+        "- `B_single_layer_llm_agent` is faster in wall-clock time, but stage recovery is not observable because it lacks the outer stage/checker runtime; the artifacts remain plausible but not fully verified.",
         "- `C_black_box_agent_backend` retains some outer workflow control, but the inner Codex state is opaque because `codex exec` does not expose SDK thread/turn/event signals.",
         "",
         "## Goal Coverage",
         "",
         f"- Performance/stability: A completes {a['stages_passed']}/{a['stages_total']} stages; B and C stop at {b['stages_passed']}/{b['stages_total']} and {c['stages_passed']}/{c['stages_total']}.",
         "- Flexibility: A keeps workflow/checker/skill concerns in VeriAgent, while B depends on a single prompt carrying the whole process.",
-        f"- Recovery: A records {a['stage_recovery_count']} recovered stage; B and C record no structured recovery.",
+        f"- Recovery: A records {a['stage_recovery_count']} recovered stage; B is N/A because recovery is not observable in a single-layer prompt baseline; C records no structured recovery.",
         "",
         "## Demo Conclusion",
         "",
@@ -429,11 +456,14 @@ def main() -> int:
             "ablation_mode": item["ablation_mode"],
             "architecture": item["architecture"],
             "all_completed": item["all_completed"],
+            "stage_measurement_mode": item["stage_measurement_mode"],
             "stages_total": item["stages_total"],
             "stages_passed": item["stages_passed"],
             "checker_retry_total": item["checker_retry_total"],
             "codex_turn_total": item["codex_turn_total"],
             "stage_recovery_count": item["stage_recovery_count"],
+            "stage_recovery_observable": item["stage_recovery_observable"],
+            "stage_recovery_note": item["stage_recovery_note"],
             "duration_sec": item["duration_sec"],
             "artifact_quality_score": item["artifact_quality_score"],
             "artifact_quality_breakdown": item["artifact_quality_breakdown"],

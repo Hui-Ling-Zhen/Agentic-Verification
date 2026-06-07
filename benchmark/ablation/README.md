@@ -23,10 +23,12 @@ For the same DUT, does an outer agent runtime (**VeriAgent supervising Codex**) 
 Compare:
 
 - `all_completed`
+- `stage_measurement_mode`
 - `stages_passed`
 - `checker_retry_total`
 - `codex_turn_total`
 - `stage_recovery_count`
+- `stage_recovery_observable`
 - `duration_sec`
 - `codex_failure_reason`
 - `artifact_quality_score`
@@ -47,6 +49,12 @@ Compare:
 | `reproducibility_trace_quality` | 0.05 | Whether manifest, turn trace, command trace, and policy trace are complete. |
 
 For the current demo this gives `0.93` for `A_agent_for_agent_runtime`, `0.62` for `B_single_layer_llm_agent`, and `0.55` for `C_black_box_agent_backend`.
+
+## Recovery observability
+
+`stage_recovery_count` only counts recovery that VeriAgent can observe: a stage fails under checker/supervisor feedback and later completes. This is meaningful for `A_agent_for_agent_runtime` and `C_black_box_agent_backend`, because they still run through the outer VeriAgent stage loop.
+
+For `B_single_layer_llm_agent`, recovery is `N/A`: it has no outer stage/checker runtime, so any "recovery" would be inferred after the fact from artifacts, not observed during a runtime loop. The demo records this as `stage_recovery_count: null`, `stage_recovery_observable: false`.
 
 ## Demo run
 
