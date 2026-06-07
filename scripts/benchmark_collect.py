@@ -11,14 +11,32 @@ import os
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
+MANIFEST_FILENAME = "run_manifest.json"
 
-from veriagent.util.benchmark import find_manifest_files, load_json_file  # noqa: E402
+
+def load_json_file(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def find_manifest_files(search_roots: list[str]) -> list[str]:
+    found: list[str] = []
+    for root in search_roots:
+        if not os.path.isdir(root):
+            continue
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [
+                item for item in dirnames
+                if item not in {".git", "__pycache__", ".pytest_cache"}
+            ]
+            if MANIFEST_FILENAME in filenames and os.path.basename(dirpath) == ".veriagent":
+                found.append(os.path.join(dirpath, MANIFEST_FILENAME))
+    return sorted(found)
 
 
 CSV_FIELDS = [
     "dut",
+    "ablation_mode",
     "workflow_config",
     "backend",
     "backend_class",
@@ -42,6 +60,8 @@ CSV_FIELDS = [
     "codex_failure_reason",
     "codex_supervisor_signal_count",
     "codex_supervisor_error_count",
+    "artifact_quality_score",
+    "artifact_quality_notes",
     "codex_bin",
     "sandbox_mode",
     "network_access",
@@ -60,6 +80,16 @@ def _load_manifest(path: str) -> dict:
         return data if isinstance(data, dict) else {}
     except Exception as exc:
         return {"_error": str(exc), "_path": path}
+
+
+def _derive_ablation_mode(row: dict) -> str:
+    if row.get("ablation_mode"):
+        return str(row["ablation_mode"])
+    workspace = str(row.get("workspace") or "")
+    for marker in ("A_supervised", "B_raw", "C_legacy"):
+        if marker in workspace:
+            return marker
+    return ""
 
 
 def main() -> int:
@@ -87,6 +117,7 @@ def main() -> int:
     rows = [_load_manifest(p) for p in manifest_paths]
     rows = [r for r in rows if r and not r.get("_error")]
     for row in rows:
+        row["ablation_mode"] = _derive_ablation_mode(row)
         signals = row.get("codex_supervisor_signals") or []
         if isinstance(signals, list):
             row["codex_supervisor_signal_count"] = len(signals)

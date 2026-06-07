@@ -37,7 +37,7 @@ $(if $(CFG),$(CFG),$(call dut_workflow_cfg,$1))
 endef
 
 # Supervised Codex SDK contract: single source is veriagent.runtime_contract.
-VERIAGENT_SUPERVISED_CODEX := $(shell PYTHONPATH=$(CURDIR) python3 -c "from veriagent.runtime_contract import official_launch_args_string; print(official_launch_args_string())")
+VERIAGENT_SUPERVISED_CODEX = $(shell PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 -c "from veriagent.runtime_contract import official_launch_args_string; print(official_launch_args_string())")
 SWARM_IMAGE ?= ghcr.nju.edu.cn/xs-mlvp/veriagent:latest
 SWARM_NETWORK ?= veriagent_net
 SWARM_MASTER_SERVICE ?= veriagent_master
@@ -279,10 +279,19 @@ example-algorithm:
 	$(MAKE) mcp_IntegerDivider $(ARGS)
 
 # ---------- Benchmark: aggregate .veriagent/run_manifest.json ----------
-.PHONY: benchmark benchmark-clean
+.PHONY: benchmark benchmark-clean ablation-simulate ablation-benchmark ablation-clean
 
 benchmark:
 	@python3 scripts/benchmark_collect.py --scan output examples
+
+ablation-simulate:
+	@PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 scripts/ablation_simulate.py
+
+ablation-benchmark: ablation-simulate
+	@PYTHONPATH=$(CURDIR):$(CURDIR)/.verify_vendor python3 scripts/benchmark_collect.py --scan output/ablation_simulated --out benchmark/ablation_summary.csv --json benchmark/ablation_runs.json
+
+ablation-clean:
+	rm -rf output/ablation_simulated benchmark/ablation_simulated.json benchmark/ablation_summary.csv benchmark/ablation_runs.json
 
 benchmark-clean:
 	rm -rf benchmark/summary.csv benchmark/runs.json

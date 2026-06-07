@@ -92,3 +92,39 @@ python3 scripts/benchmark_collect.py --scan output /path/to/other/workspaces
 3. Compare `all_completed`, `duration_sec`, and `stages_passed` across DUTs or workflow versions.
 
 No manifests yet? The collector prints a hint to run a case first.
+
+## Runtime ablation demo
+
+Phase-2 evaluation compares three modes on the same small DUT:
+
+| Mode | Meaning |
+|------|---------|
+| `A_supervised` | VeriAgent + Codex SDK + workflow + checker + structured journal |
+| `B_raw_codex` | Raw Codex prompt baseline without the outer stage/checker loop |
+| `C_legacy_codex_exec` | Compatibility-only opaque `codex exec` style path |
+
+To validate the comparison shape without spending model/runtime cost:
+
+```bash
+make ablation-benchmark
+```
+
+This writes synthetic manifests under `output/ablation_simulated/` and aggregates:
+
+- `benchmark/ablation_simulated.json`
+- `benchmark/ablation_summary.csv`
+- `benchmark/ablation_runs.json`
+
+The important columns are:
+
+- `all_completed`
+- `stages_passed`
+- `checker_retry_total`
+- `codex_turn_total`
+- `stage_recovery_count`
+- `duration_sec`
+- `codex_failure_reason`
+- `artifact_quality_score`
+- `codex_supervisor_signal_count`
+
+Synthetic results are not claims about model performance. They are a reproducible scaffold for the real Adder/Mux ablation runs.

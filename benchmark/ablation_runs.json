@@ -1,0 +1,579 @@
+{
+  "project": "Agentic-Verification",
+  "manifest_count": 3,
+  "manifests": [
+    {
+      "schema_version": "3",
+      "project": "Agentic-Verification",
+      "dut": "Adder",
+      "ablation_mode": "A_supervised",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised",
+      "workflow_config": "examples/01-baseline/workflow/default.yaml",
+      "backend": "codex_app_server",
+      "backend_class": "synthetic.ablation",
+      "backend_status": "official",
+      "backend_legacy": false,
+      "version": "synthetic",
+      "seed": 42,
+      "stage_index": 4,
+      "all_completed": true,
+      "is_agent_exit": true,
+      "run_status": "simulated_completed",
+      "stages_total": 4,
+      "stages_passed": 4,
+      "stages_skipped": 0,
+      "stage_trace": [
+        {
+          "stage_id": "requirement_analysis_and_planning",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true
+          },
+          "output_files": [
+            "unity_test/Adder_verification_needs_and_plan.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": {
+            "plan": "Read Adder requirements and define verification scope.",
+            "evidence_read": [
+              "Adder/README.md"
+            ],
+            "changes_made": [
+              "unity_test/Adder_verification_needs_and_plan.md"
+            ],
+            "checker_result": "markdown_file_check passed",
+            "next_risk": "Need function/check decomposition."
+          },
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "dut_function_understanding",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true,
+            "Adder/__init__.py": true
+          },
+          "output_files": [
+            "unity_test/Adder_basic_info.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "functional_specification_analysis",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 1,
+          "reference_files": {
+            "Guide_Doc/dut_functions_and_checks.md": true
+          },
+          "output_files": [
+            "unity_test/Adder_functions_and_checks.md"
+          ],
+          "observed_files": [
+            "Guide_Doc/dut_functions_and_checks.md"
+          ],
+          "skill_usage": {
+            "functions-and-checks": {
+              "list": true,
+              "read": true,
+              "use": true
+            }
+          },
+          "journal": null,
+          "checker_feedback": "Label structure failed once, then recovered."
+        },
+        {
+          "stage_id": "test_generation",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {},
+          "output_files": [
+            "unity_test/tests/test_adder_basic.py"
+          ],
+          "observed_files": [],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        }
+      ],
+      "codex_turn_total": 5,
+      "checker_retry_total": 1,
+      "stage_recovery_count": 1,
+      "skill_usage_summary": {
+        "functions-and-checks": {
+          "list": 1,
+          "read": 1,
+          "use": 1
+        }
+      },
+      "tool_action_trace": {
+        "commands": [
+          {
+            "command": "python -m pytest unity_test/tests/test_adder_basic.py"
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "approvals": [],
+        "mcp_startup": [
+          {
+            "status": "healthy"
+          }
+        ]
+      },
+      "duration_sec": 240.0,
+      "started_at": "2026-06-07T02:41:29+00:00",
+      "updated_at": "2026-06-07T02:41:29+00:00",
+      "codex_thread_id": "synthetic-thread",
+      "codex_turn_id": "synthetic-turn-5",
+      "codex_turn_status": "completed",
+      "codex_token_usage": {
+        "total": {
+          "totalTokens": 12000
+        }
+      },
+      "codex_mcp_tool_calls": 8,
+      "codex_file_changes": 4,
+      "codex_failure_reason": null,
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_events.jsonl",
+      "codex_approval_requests": [],
+      "codex_turn_context": {
+        "stage_id": "functional_specification_analysis",
+        "checker_feedback": [
+          "Label structure failed once, then recovered."
+        ],
+        "recovery_context": {
+          "status": "failed"
+        }
+      },
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/.veriagent/codex_turn_context.json",
+      "codex_turn_trace": {
+        "plans": [
+          {
+            "text": "Complete Adder verification stages with Check/Complete gates."
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "commands": [
+          {
+            "command": "python -m pytest unity_test/tests/test_adder_basic.py"
+          }
+        ],
+        "errors": [],
+        "approvals": [],
+        "mcp_startup": [
+          {
+            "status": "healthy"
+          }
+        ],
+        "unknown_events": []
+      },
+      "codex_supervisor_signals": [
+        {
+          "kind": "plan_missing_stage_context",
+          "severity": "warning",
+          "message": "Plan missed current stage once and was corrected."
+        }
+      ],
+      "sandbox_mode": "workspace-write",
+      "network_access": "disabled",
+      "protected_inputs": [
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/A_supervised/Adder_RTL"
+      ],
+      "policy_enforcement": "codex_sandbox_os_permissions",
+      "artifact_quality_score": 0.93,
+      "artifact_quality_notes": "Complete plan/basic-info/functions-checks artifacts with structured journal and checker recovery.",
+      "codex_supervisor_signal_count": 1,
+      "codex_supervisor_error_count": 0
+    },
+    {
+      "schema_version": "3",
+      "project": "Agentic-Verification",
+      "dut": "Adder",
+      "ablation_mode": "B_raw_codex",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex",
+      "workflow_config": "examples/01-baseline/workflow/default.yaml",
+      "backend": "raw_codex_prompt",
+      "backend_class": "synthetic.ablation",
+      "backend_status": "external_baseline",
+      "backend_legacy": true,
+      "version": "synthetic",
+      "seed": 42,
+      "stage_index": 2,
+      "all_completed": false,
+      "is_agent_exit": false,
+      "run_status": "simulated_incomplete",
+      "stages_total": 4,
+      "stages_passed": 2,
+      "stages_skipped": 0,
+      "stage_trace": [
+        {
+          "stage_id": "requirement_analysis_and_planning",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true
+          },
+          "output_files": [
+            "unity_test/Adder_verification_needs_and_plan.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "dut_function_understanding",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true,
+            "Adder/__init__.py": false
+          },
+          "output_files": [
+            "unity_test/Adder_basic_info.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "functional_specification_analysis",
+          "completed": false,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Guide_Doc/dut_functions_and_checks.md": false
+          },
+          "output_files": [
+            "unity_test/Adder_functions_and_checks.md"
+          ],
+          "observed_files": [],
+          "skill_usage": {
+            "functions-and-checks": {
+              "list": true,
+              "read": false,
+              "use": false
+            }
+          },
+          "journal": null,
+          "checker_feedback": "No outer Check/Complete loop; artifacts were plausible but not stage-gated."
+        },
+        {
+          "stage_id": "test_generation",
+          "completed": false,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {},
+          "output_files": [
+            "unity_test/tests/test_adder_basic.py"
+          ],
+          "observed_files": [],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        }
+      ],
+      "codex_turn_total": 3,
+      "checker_retry_total": 0,
+      "stage_recovery_count": 0,
+      "skill_usage_summary": {
+        "functions-and-checks": {
+          "list": 1,
+          "read": 0,
+          "use": 0
+        }
+      },
+      "tool_action_trace": {
+        "commands": [
+          {
+            "command": "codex exec <raw prompt>"
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "approvals": [],
+        "mcp_startup": []
+      },
+      "duration_sec": 180.0,
+      "started_at": "2026-06-07T02:41:29+00:00",
+      "updated_at": "2026-06-07T02:41:29+00:00",
+      "codex_thread_id": null,
+      "codex_turn_id": null,
+      "codex_turn_status": "failed",
+      "codex_token_usage": {
+        "total": {
+          "totalTokens": 9000
+        }
+      },
+      "codex_mcp_tool_calls": 0,
+      "codex_file_changes": 2,
+      "codex_failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated.",
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_events.jsonl",
+      "codex_approval_requests": [],
+      "codex_turn_context": {
+        "stage_id": "functional_specification_analysis",
+        "checker_feedback": [],
+        "recovery_context": {}
+      },
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/.veriagent/codex_turn_context.json",
+      "codex_turn_trace": {
+        "plans": [
+          {
+            "text": "Complete Adder verification stages with Check/Complete gates."
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "commands": [
+          {
+            "command": "codex exec <raw prompt>"
+          }
+        ],
+        "errors": [],
+        "approvals": [],
+        "mcp_startup": [],
+        "unknown_events": []
+      },
+      "codex_supervisor_signals": [],
+      "sandbox_mode": null,
+      "network_access": "disabled",
+      "protected_inputs": [
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/B_raw_codex/Adder_RTL"
+      ],
+      "policy_enforcement": "not_available",
+      "artifact_quality_score": 0.62,
+      "artifact_quality_notes": "Generated readable notes, but no enforced journal schema or checker-driven recovery.",
+      "codex_supervisor_signal_count": 0,
+      "codex_supervisor_error_count": 0
+    },
+    {
+      "schema_version": "3",
+      "project": "Agentic-Verification",
+      "dut": "Adder",
+      "ablation_mode": "C_legacy_codex_exec",
+      "workspace": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec",
+      "workflow_config": "examples/01-baseline/workflow/default.yaml",
+      "backend": "codex",
+      "backend_class": "synthetic.ablation",
+      "backend_status": "legacy",
+      "backend_legacy": true,
+      "version": "synthetic",
+      "seed": 42,
+      "stage_index": 2,
+      "all_completed": false,
+      "is_agent_exit": false,
+      "run_status": "simulated_incomplete",
+      "stages_total": 4,
+      "stages_passed": 2,
+      "stages_skipped": 0,
+      "stage_trace": [
+        {
+          "stage_id": "requirement_analysis_and_planning",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true
+          },
+          "output_files": [
+            "unity_test/Adder_verification_needs_and_plan.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "dut_function_understanding",
+          "completed": true,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {
+            "Adder/README.md": true,
+            "Adder/__init__.py": false
+          },
+          "output_files": [
+            "unity_test/Adder_basic_info.md"
+          ],
+          "observed_files": [
+            "Adder/README.md"
+          ],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        },
+        {
+          "stage_id": "functional_specification_analysis",
+          "completed": false,
+          "skipped": false,
+          "fail_count": 2,
+          "reference_files": {
+            "Guide_Doc/dut_functions_and_checks.md": false
+          },
+          "output_files": [
+            "unity_test/Adder_functions_and_checks.md"
+          ],
+          "observed_files": [],
+          "skill_usage": {
+            "functions-and-checks": {
+              "list": true,
+              "read": false,
+              "use": false
+            }
+          },
+          "journal": null,
+          "checker_feedback": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state."
+        },
+        {
+          "stage_id": "test_generation",
+          "completed": false,
+          "skipped": false,
+          "fail_count": 0,
+          "reference_files": {},
+          "output_files": [
+            "unity_test/tests/test_adder_basic.py"
+          ],
+          "observed_files": [],
+          "skill_usage": {},
+          "journal": null,
+          "checker_feedback": null
+        }
+      ],
+      "codex_turn_total": 0,
+      "checker_retry_total": 2,
+      "stage_recovery_count": 0,
+      "skill_usage_summary": {
+        "functions-and-checks": {
+          "list": 1,
+          "read": 0,
+          "use": 0
+        }
+      },
+      "tool_action_trace": {
+        "commands": [
+          {
+            "command": "codex exec <veriagent prompt>"
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "approvals": [],
+        "mcp_startup": []
+      },
+      "duration_sec": 310.0,
+      "started_at": "2026-06-07T02:41:29+00:00",
+      "updated_at": "2026-06-07T02:41:29+00:00",
+      "codex_thread_id": null,
+      "codex_turn_id": null,
+      "codex_turn_status": "failed",
+      "codex_token_usage": {
+        "total": {
+          "totalTokens": 9000
+        }
+      },
+      "codex_mcp_tool_calls": 0,
+      "codex_file_changes": 2,
+      "codex_failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state.",
+      "codex_event_log": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/.veriagent/codex_events.jsonl",
+      "codex_approval_requests": [],
+      "codex_turn_context": {
+        "stage_id": "functional_specification_analysis",
+        "checker_feedback": [],
+        "recovery_context": {}
+      },
+      "codex_turn_context_file": "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/.veriagent/codex_turn_context.json",
+      "codex_turn_trace": {
+        "plans": [
+          {
+            "text": "Complete Adder verification stages with Check/Complete gates."
+          }
+        ],
+        "diffs": [
+          {
+            "file_paths": [
+              "unity_test/Adder_functions_and_checks.md"
+            ]
+          }
+        ],
+        "commands": [
+          {
+            "command": "codex exec <veriagent prompt>"
+          }
+        ],
+        "errors": [],
+        "approvals": [],
+        "mcp_startup": [],
+        "unknown_events": []
+      },
+      "codex_supervisor_signals": [
+        {
+          "kind": "legacy_backend_opaque",
+          "severity": "warning",
+          "message": "No structured Codex event stream."
+        }
+      ],
+      "sandbox_mode": null,
+      "network_access": "disabled",
+      "protected_inputs": [
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/Adder",
+        "/Users/huilingzhen/Desktop/0002-personal-projects/agent/agentic_verification/Agentic-Verification/output/ablation_simulated/C_legacy_codex_exec/Adder_RTL"
+      ],
+      "policy_enforcement": "not_available",
+      "artifact_quality_score": 0.55,
+      "artifact_quality_notes": "Some artifacts exist, but turn trace and recovery context are missing.",
+      "codex_supervisor_signal_count": 1,
+      "codex_supervisor_error_count": 0
+    }
+  ]
+}

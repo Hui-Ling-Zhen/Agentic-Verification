@@ -10,6 +10,7 @@
 
 ## 推荐学习顺序
 
+0. [Runtime Demo / Ablation](00-runtime-demo/README.md) — `make ablation-benchmark`
 1. [Adder UT 基线](01-baseline/adder/README.md) — `make example-baseline`
 2. [Mux bug 分析](01-baseline/mux/README.md) — `make example-bug`
 3. [Adder 增量](01-baseline/increment/README.md) — `make example-increment`（需先完成 1）
@@ -25,6 +26,7 @@
 
 | # | Case | README | 根目录命令 | 难度 |
 |---|------|--------|------------|:----:|
+| 0 | Runtime ablation demo | [00-runtime-demo/README.md](00-runtime-demo/README.md) | `make ablation-benchmark` | ⭐ |
 | 1 | Adder | [01-baseline/adder/README.md](01-baseline/adder/README.md) | `make example-baseline` | ⭐ |
 | 2 | Mux | [01-baseline/mux/README.md](01-baseline/mux/README.md) | `make example-bug` | ⭐⭐ |
 | 3 | Adder increment | [01-baseline/increment/README.md](01-baseline/increment/README.md) | `make example-increment` | ⭐⭐ |
