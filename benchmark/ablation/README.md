@@ -35,6 +35,18 @@ Compare:
 - `codex_supervisor_signals`
 - `codex_turn_trace`
 
+## Why this design
+
+The ablation is designed to isolate the value of **using an agent runtime to supervise another agent runtime**. It is not a pure latency contest and it is not a general leaderboard for model quality.
+
+All modes use the same Adder task shape, but they differ in what the outer runtime can observe:
+
+- `A_agent_for_agent_runtime` is runtime-observed end to end: VeriAgent sees workflow stages, checker feedback, Codex SDK events, supervisor signals, recovery context, and final artifacts.
+- `B_single_layer_llm_agent` is a single-layer prompt baseline: generated artifacts can be reviewed post-hoc, but there is no VeriAgent stage loop observing checker-driven recovery.
+- `C_black_box_agent_backend` keeps the outer VeriAgent loop but hides the inner Codex state behind `codex exec`, so recovery and trace quality are weaker than the SDK path.
+
+The reward therefore emphasizes observability and recovery: the benchmark should make it visible when the outer runtime converts failures into structured feedback, not merely when an LLM produces fluent text.
+
 ## Artifact quality rubric
 
 `artifact_quality_score` is a weighted 0-1 score. The demo writes both the final score and `artifact_quality_breakdown` into each manifest.

@@ -67,7 +67,24 @@ The current ablation demo compares the same Adder task shape across three modes:
 
 `Recovery` means a VeriAgent-observed failed stage later completed after structured checker/supervisor feedback. For the single-layer LLM baseline this is `N/A`, not `0`, because there is no runtime stage loop observing recovery.
 
-Artifact quality is a weighted 0-1 score: stage completion `0.30`, checker quality `0.20`, required artifact completeness `0.20`, journal/evidence auditability `0.15`, recovery feedback usage `0.10`, and reproducibility/trace quality `0.05`.
+The benchmark is designed to measure the value of the **outer supervisor runtime**, not just whether an LLM can write plausible text once. That is why all modes use the same DUT/task shape, but the metrics separate runtime-observed progress from post-hoc artifact review:
+
+- A measures the official agent-for-agent path: VeriAgent observes stages, checks, Codex events, recovery, and final artifacts.
+- B measures a single-layer LLM/Codex agent: artifacts can be reviewed after the fact, but stage recovery is not observable at runtime.
+- C measures the legacy black-box backend: VeriAgent still has an outer loop, but the inner Codex state is opaque.
+
+`artifact_quality_score` is a weighted 0-1 reward:
+
+| Component | Weight | Why it matters |
+|-----------|--------|----------------|
+| Stage completion | `0.30` | Rewards finishing the required workflow, not just producing partial notes. |
+| Checker result quality | `0.20` | Rewards passing checks or producing actionable checker feedback. |
+| Required artifact completeness | `0.20` | Rewards generating the expected plan, basic-info, functions/checks, and test artifacts. |
+| Journal/evidence auditability | `0.15` | Rewards structured journal entries, evidence read, and changed-artifact traces. |
+| Recovery feedback usage | `0.10` | Rewards using checker feedback or supervisor signals to recover from a failed stage. |
+| Reproducibility/trace quality | `0.05` | Rewards manifest, turn trace, command trace, and policy trace completeness. |
+
+This reward intentionally favors **auditable verification progress** over raw speed or fluent-looking output.
 
 The key result is not raw speed. The supervised mode makes progress **auditable, recoverable, and measurable**: failures become checker feedback, Codex events become supervisor signals, and the final manifest records the evidence. See [benchmark/ablation/report.md](benchmark/ablation/report.md) or regenerate the demo with:
 

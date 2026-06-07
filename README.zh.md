@@ -65,7 +65,24 @@ VeriAgent 会把 Codex event 提升成 supervisor signal：
 
 这里的“恢复能力”指：VeriAgent 观测到某个 stage 因 checker 失败，然后通过结构化 feedback/supervisor signals 让该 stage 后续完成。对单层 LLM baseline 来说，这个指标是 `N/A` 而不是 `0`，因为没有 runtime stage loop 可以观测恢复过程。
 
-Artifact 质量是 0-1 加权分：stage completion `0.30`、checker quality `0.20`、required artifact completeness `0.20`、journal/evidence auditability `0.15`、recovery feedback usage `0.10`、reproducibility/trace quality `0.05`。
+这个 benchmark 的目标不是证明“LLM 能不能一次性写出看起来合理的文本”，而是衡量 **外层 supervisor runtime 是否带来可观测的验证价值**。因此三种模式使用同一个 DUT/task 形态，但把 runtime-observed progress 和 post-hoc artifact review 分开：
+
+- A 衡量官方 agent-for-agent 路径：VeriAgent 可以观测 stage、checker、Codex event、recovery 和最终 artifact。
+- B 衡量单层 LLM/Codex agent：artifact 可以事后审阅，但 runtime 中没有可观测的 stage recovery。
+- C 衡量 legacy 黑盒 backend：VeriAgent 仍有外层 loop，但内层 Codex 状态不透明。
+
+`artifact_quality_score` 是 0-1 加权 reward：
+
+| 组成项 | 权重 | 为什么重要 |
+|--------|------|------------|
+| Stage completion | `0.30` | 奖励完成 workflow 要求的阶段，而不是只产出部分 notes。 |
+| Checker result quality | `0.20` | 奖励 checker 通过，或产生可行动的 checker feedback。 |
+| Required artifact completeness | `0.20` | 奖励生成 plan、basic-info、functions/checks、test 等必需产物。 |
+| Journal/evidence auditability | `0.15` | 奖励结构化 journal、evidence read 和 changed-artifact trace。 |
+| Recovery feedback usage | `0.10` | 奖励利用 checker feedback 或 supervisor signals 从失败阶段恢复。 |
+| Reproducibility/trace quality | `0.05` | 奖励 manifest、turn trace、command trace、policy trace 的完整性。 |
+
+这个 reward 有意奖励 **可审计的验证进展**，而不是单纯奖励速度或流畅但不可验证的输出。
 
 这个结果想说明的不是“哪个最快”，而是双层 runtime 能让进展 **可审计、可恢复、可度量**：失败会变成 checker feedback，Codex event 会变成 supervisor signal，最终 manifest 会记录证据。完整报告见 [`benchmark/ablation/report.md`](/benchmark/ablation/report.md)，也可以重新生成：
 

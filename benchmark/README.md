@@ -134,6 +134,8 @@ Phase-2 evaluation compares three modes on the same small DUT:
 | `B_single_layer_llm_agent` | Codex acts as a single-layer LLM/Codex agent from one task prompt |
 | `C_black_box_agent_backend` | VeriAgent calls an opaque `codex exec` style backend |
 
+The comparison is designed to measure supervisor value, not only speed. The `artifact_quality_score` reward favors stage completion, checker quality, required artifact completeness, journal/evidence auditability, recovery feedback usage, and reproducible traces.
+
 Full experiment notes: [`benchmark/ablation/README.md`](ablation/README.md).
 
 To validate the comparison shape without spending model/runtime cost:
