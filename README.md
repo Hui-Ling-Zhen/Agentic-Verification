@@ -65,6 +65,8 @@ The current ablation demo compares the same Adder task shape across three modes:
 | `B_single_layer_llm_agent` | No | `2/4` | `0` | `0.62` | A single prompt can produce plausible notes, but lacks stage gates, structured journal enforcement, and runtime recovery context. |
 | `C_black_box_agent_backend` | No | `2/4` | `0` | `0.55` | `codex exec` is usable as a fallback, but its inner state is opaque without SDK thread/turn/event signals. |
 
+Artifact quality is a weighted 0-1 score: stage completion `0.30`, checker quality `0.20`, required artifact completeness `0.20`, journal/evidence auditability `0.15`, recovery feedback usage `0.10`, and reproducibility/trace quality `0.05`.
+
 The key result is not raw speed. The supervised mode makes progress **auditable, recoverable, and measurable**: failures become checker feedback, Codex events become supervisor signals, and the final manifest records the evidence. See [benchmark/ablation/report.md](benchmark/ablation/report.md) or regenerate the demo with:
 
 ```bash

@@ -19,6 +19,34 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 
 
+ARTIFACT_QUALITY_RUBRIC: dict[str, dict[str, Any]] = {
+    "stage_completion": {
+        "weight": 0.30,
+        "description": "How many required workflow stages completed.",
+    },
+    "checker_result_quality": {
+        "weight": 0.20,
+        "description": "Whether checkers passed or produced actionable feedback.",
+    },
+    "required_artifact_completeness": {
+        "weight": 0.20,
+        "description": "Whether required plan/basic-info/functions/checks/tests artifacts exist.",
+    },
+    "journal_evidence_auditability": {
+        "weight": 0.15,
+        "description": "Whether journal, evidence-read, and changed-artifact traces are inspectable.",
+    },
+    "recovery_feedback_usage": {
+        "weight": 0.10,
+        "description": "Whether checker feedback or supervisor signals were used to recover.",
+    },
+    "reproducibility_trace_quality": {
+        "weight": 0.05,
+        "description": "Whether manifest, turn trace, command trace, and policy trace are complete.",
+    },
+}
+
+
 SCENARIOS: list[dict[str, Any]] = [
     {
         "ablation_mode": "A_agent_for_agent_runtime",
@@ -34,7 +62,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "stage_recovery_count": 1,
         "duration_sec": 240.0,
         "codex_failure_reason": None,
-        "artifact_quality_score": 0.93,
+        "quality_components": {
+            "stage_completion": 1.00,
+            "checker_result_quality": 0.85,
+            "required_artifact_completeness": 0.95,
+            "journal_evidence_auditability": 0.95,
+            "recovery_feedback_usage": 0.80,
+            "reproducibility_trace_quality": 0.95,
+        },
         "artifact_quality_notes": "Complete plan/basic-info/functions-checks artifacts with structured journal and checker recovery.",
         "signals": [
             {"kind": "plan_missing_stage_context", "severity": "warning", "message": "Plan missed current stage once and was corrected."}
@@ -55,7 +90,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "stage_recovery_count": 0,
         "duration_sec": 180.0,
         "codex_failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated.",
-        "artifact_quality_score": 0.62,
+        "quality_components": {
+            "stage_completion": 0.50,
+            "checker_result_quality": 0.70,
+            "required_artifact_completeness": 0.85,
+            "journal_evidence_auditability": 0.60,
+            "recovery_feedback_usage": 0.35,
+            "reproducibility_trace_quality": 0.70,
+        },
         "artifact_quality_notes": "Generated readable notes, but no enforced journal schema or checker-driven recovery.",
         "signals": [],
         "commands": ["codex exec <raw prompt>"],
@@ -74,7 +116,14 @@ SCENARIOS: list[dict[str, Any]] = [
         "stage_recovery_count": 0,
         "duration_sec": 310.0,
         "codex_failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state.",
-        "artifact_quality_score": 0.55,
+        "quality_components": {
+            "stage_completion": 0.50,
+            "checker_result_quality": 0.65,
+            "required_artifact_completeness": 0.75,
+            "journal_evidence_auditability": 0.50,
+            "recovery_feedback_usage": 0.25,
+            "reproducibility_trace_quality": 0.40,
+        },
         "artifact_quality_notes": "Some artifacts exist, but turn trace and recovery context are missing.",
         "signals": [
             {"kind": "legacy_backend_opaque", "severity": "warning", "message": "No structured Codex event stream."}
@@ -88,8 +137,30 @@ def _now() -> str:
     return dt.datetime.now(tz=dt.timezone.utc).replace(microsecond=0).isoformat()
 
 
+def _artifact_quality_breakdown(scenario: dict[str, Any]) -> dict[str, Any]:
+    components = scenario["quality_components"]
+    weighted: dict[str, dict[str, Any]] = {}
+    total = 0.0
+    for name, rubric in ARTIFACT_QUALITY_RUBRIC.items():
+        component_score = float(components[name])
+        weight = float(rubric["weight"])
+        contribution = component_score * weight
+        total += contribution
+        weighted[name] = {
+            "score": component_score,
+            "weight": weight,
+            "weighted": round(contribution, 4),
+            "description": rubric["description"],
+        }
+    return {
+        "score": round(total, 2),
+        "rubric": weighted,
+    }
+
+
 def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str, Any]:
     workspace = base_dir / scenario["ablation_mode"]
+    quality = _artifact_quality_breakdown(scenario)
     stage_trace = [
         {
             "stage_id": "requirement_analysis_and_planning",
@@ -217,7 +288,8 @@ def _manifest_for_scenario(base_dir: Path, scenario: dict[str, Any]) -> dict[str
         "network_access": "disabled",
         "protected_inputs": [str(workspace / "Adder"), str(workspace / "Adder_RTL")],
         "policy_enforcement": "codex_sandbox_os_permissions" if scenario["ablation_mode"] == "A_agent_for_agent_runtime" else "not_available",
-        "artifact_quality_score": scenario["artifact_quality_score"],
+        "artifact_quality_score": quality["score"],
+        "artifact_quality_breakdown": quality,
         "artifact_quality_notes": scenario["artifact_quality_notes"],
     }
 
@@ -269,6 +341,41 @@ def _write_report(path: Path, summary: list[dict[str, Any]]) -> None:
             "{checker_retry_total} | {codex_turn_total} | {stage_recovery_count} | "
             "{duration_sec} | {artifact_quality_score} | {failure_reason} |".format(
                 **{**item, "failure_reason": item["failure_reason"] or ""}
+            )
+        )
+    lines.extend([
+        "",
+        "## Artifact Quality Rubric",
+        "",
+        "`artifact_quality_score` is a weighted 0-1 score:",
+        "",
+        "| Component | Weight | Meaning |",
+        "|-----------|--------|---------|",
+    ])
+    for name, rubric in ARTIFACT_QUALITY_RUBRIC.items():
+        lines.append(
+            f"| `{name}` | {rubric['weight']:.2f} | {rubric['description']} |"
+        )
+    lines.extend([
+        "",
+        "## Artifact Quality Breakdown",
+        "",
+        "| Mode | Stage | Checker | Artifacts | Journal/Evidence | Recovery | Trace | Score |",
+        "|------|-------|---------|-----------|------------------|----------|-------|-------|",
+    ])
+    for item in summary:
+        rubric = item["artifact_quality_breakdown"]["rubric"]
+        lines.append(
+            "| {mode} | {stage:.2f} | {checker:.2f} | {artifacts:.2f} | "
+            "{journal:.2f} | {recovery:.2f} | {trace:.2f} | {score:.2f} |".format(
+                mode=item["ablation_mode"],
+                stage=rubric["stage_completion"]["score"],
+                checker=rubric["checker_result_quality"]["score"],
+                artifacts=rubric["required_artifact_completeness"]["score"],
+                journal=rubric["journal_evidence_auditability"]["score"],
+                recovery=rubric["recovery_feedback_usage"]["score"],
+                trace=rubric["reproducibility_trace_quality"]["score"],
+                score=item["artifact_quality_score"],
             )
         )
     lines.extend([
@@ -329,6 +436,7 @@ def main() -> int:
             "stage_recovery_count": item["stage_recovery_count"],
             "duration_sec": item["duration_sec"],
             "artifact_quality_score": item["artifact_quality_score"],
+            "artifact_quality_breakdown": item["artifact_quality_breakdown"],
             "failure_reason": item["codex_failure_reason"],
         }
         for item in manifests

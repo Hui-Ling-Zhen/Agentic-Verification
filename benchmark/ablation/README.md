@@ -33,6 +33,21 @@ Compare:
 - `codex_supervisor_signals`
 - `codex_turn_trace`
 
+## Artifact quality rubric
+
+`artifact_quality_score` is a weighted 0-1 score. The demo writes both the final score and `artifact_quality_breakdown` into each manifest.
+
+| Component | Weight | What it measures |
+|-----------|--------|------------------|
+| `stage_completion` | 0.30 | How many required workflow stages completed. |
+| `checker_result_quality` | 0.20 | Whether checkers passed or produced actionable feedback. |
+| `required_artifact_completeness` | 0.20 | Whether required plan/basic-info/functions/checks/tests artifacts exist. |
+| `journal_evidence_auditability` | 0.15 | Whether journal, evidence-read, and changed-artifact traces are inspectable. |
+| `recovery_feedback_usage` | 0.10 | Whether checker feedback or supervisor signals were used to recover. |
+| `reproducibility_trace_quality` | 0.05 | Whether manifest, turn trace, command trace, and policy trace are complete. |
+
+For the current demo this gives `0.93` for `A_agent_for_agent_runtime`, `0.62` for `B_single_layer_llm_agent`, and `0.55` for `C_black_box_agent_backend`.
+
 ## Demo run
 
 The demo run does not call Codex. It creates `run_manifest.json` files for A/B/C so the comparison shape, fields, and benchmark pipeline are fixed before spending time on real model runs.

@@ -62,6 +62,7 @@ CSV_FIELDS = [
     "codex_supervisor_signal_count",
     "codex_supervisor_error_count",
     "artifact_quality_score",
+    "artifact_quality_breakdown",
     "artifact_quality_notes",
     "codex_bin",
     "sandbox_mode",
@@ -130,7 +131,6 @@ def main() -> int:
                 1 for signal in signals
                 if isinstance(signal, dict) and signal.get("severity") == "error"
             )
-
     os.makedirs(os.path.dirname(os.path.abspath(os.path.join(ROOT, args.out))), exist_ok=True)
     os.makedirs(os.path.dirname(os.path.abspath(os.path.join(ROOT, args.json))), exist_ok=True)
 
@@ -141,7 +141,13 @@ def main() -> int:
         writer = csv.DictWriter(fh, fieldnames=CSV_FIELDS, extrasaction="ignore")
         writer.writeheader()
         for row in rows:
-            writer.writerow({k: row.get(k, "") for k in CSV_FIELDS})
+            csv_row = {}
+            for key in CSV_FIELDS:
+                value = row.get(key, "")
+                if isinstance(value, (dict, list)):
+                    value = json.dumps(value, ensure_ascii=False, sort_keys=True)
+                csv_row[key] = value
+            writer.writerow(csv_row)
 
     payload = {
         "project": "Agentic-Verification",

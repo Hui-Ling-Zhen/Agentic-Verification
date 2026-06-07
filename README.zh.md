@@ -63,6 +63,8 @@ VeriAgent 会把 Codex event 提升成 supervisor signal：
 | `B_single_layer_llm_agent` | 否 | `2/4` | `0` | `0.62` | 单层 prompt 能生成看起来合理的文档，但缺少 stage gate、结构化 journal 和 runtime recovery context。 |
 | `C_black_box_agent_backend` | 否 | `2/4` | `0` | `0.55` | `codex exec` 可作为 fallback，但缺少 SDK thread/turn/event 信号，内层状态对 VeriAgent 不透明。 |
 
+Artifact 质量是 0-1 加权分：stage completion `0.30`、checker quality `0.20`、required artifact completeness `0.20`、journal/evidence auditability `0.15`、recovery feedback usage `0.10`、reproducibility/trace quality `0.05`。
+
 这个结果想说明的不是“哪个最快”，而是双层 runtime 能让进展 **可审计、可恢复、可度量**：失败会变成 checker feedback，Codex event 会变成 supervisor signal，最终 manifest 会记录证据。完整报告见 [`benchmark/ablation/report.md`](/benchmark/ablation/report.md)，也可以重新生成：
 
 ```bash

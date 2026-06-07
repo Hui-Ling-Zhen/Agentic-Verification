@@ -10,6 +10,47 @@
     "stage_recovery_count": 1,
     "duration_sec": 240.0,
     "artifact_quality_score": 0.93,
+    "artifact_quality_breakdown": {
+      "score": 0.93,
+      "rubric": {
+        "stage_completion": {
+          "score": 1.0,
+          "weight": 0.3,
+          "weighted": 0.3,
+          "description": "How many required workflow stages completed."
+        },
+        "checker_result_quality": {
+          "score": 0.85,
+          "weight": 0.2,
+          "weighted": 0.17,
+          "description": "Whether checkers passed or produced actionable feedback."
+        },
+        "required_artifact_completeness": {
+          "score": 0.95,
+          "weight": 0.2,
+          "weighted": 0.19,
+          "description": "Whether required plan/basic-info/functions/checks/tests artifacts exist."
+        },
+        "journal_evidence_auditability": {
+          "score": 0.95,
+          "weight": 0.15,
+          "weighted": 0.1425,
+          "description": "Whether journal, evidence-read, and changed-artifact traces are inspectable."
+        },
+        "recovery_feedback_usage": {
+          "score": 0.8,
+          "weight": 0.1,
+          "weighted": 0.08,
+          "description": "Whether checker feedback or supervisor signals were used to recover."
+        },
+        "reproducibility_trace_quality": {
+          "score": 0.95,
+          "weight": 0.05,
+          "weighted": 0.0475,
+          "description": "Whether manifest, turn trace, command trace, and policy trace are complete."
+        }
+      }
+    },
     "failure_reason": null
   },
   {
@@ -23,6 +64,47 @@
     "stage_recovery_count": 0,
     "duration_sec": 180.0,
     "artifact_quality_score": 0.62,
+    "artifact_quality_breakdown": {
+      "score": 0.62,
+      "rubric": {
+        "stage_completion": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted": 0.15,
+          "description": "How many required workflow stages completed."
+        },
+        "checker_result_quality": {
+          "score": 0.7,
+          "weight": 0.2,
+          "weighted": 0.14,
+          "description": "Whether checkers passed or produced actionable feedback."
+        },
+        "required_artifact_completeness": {
+          "score": 0.85,
+          "weight": 0.2,
+          "weighted": 0.17,
+          "description": "Whether required plan/basic-info/functions/checks/tests artifacts exist."
+        },
+        "journal_evidence_auditability": {
+          "score": 0.6,
+          "weight": 0.15,
+          "weighted": 0.09,
+          "description": "Whether journal, evidence-read, and changed-artifact traces are inspectable."
+        },
+        "recovery_feedback_usage": {
+          "score": 0.35,
+          "weight": 0.1,
+          "weighted": 0.035,
+          "description": "Whether checker feedback or supervisor signals were used to recover."
+        },
+        "reproducibility_trace_quality": {
+          "score": 0.7,
+          "weight": 0.05,
+          "weighted": 0.035,
+          "description": "Whether manifest, turn trace, command trace, and policy trace are complete."
+        }
+      }
+    },
     "failure_reason": "No outer Check/Complete loop; artifacts were plausible but not stage-gated."
   },
   {
@@ -36,6 +118,47 @@
     "stage_recovery_count": 0,
     "duration_sec": 310.0,
     "artifact_quality_score": 0.55,
+    "artifact_quality_breakdown": {
+      "score": 0.55,
+      "rubric": {
+        "stage_completion": {
+          "score": 0.5,
+          "weight": 0.3,
+          "weighted": 0.15,
+          "description": "How many required workflow stages completed."
+        },
+        "checker_result_quality": {
+          "score": 0.65,
+          "weight": 0.2,
+          "weighted": 0.13,
+          "description": "Whether checkers passed or produced actionable feedback."
+        },
+        "required_artifact_completeness": {
+          "score": 0.75,
+          "weight": 0.2,
+          "weighted": 0.15,
+          "description": "Whether required plan/basic-info/functions/checks/tests artifacts exist."
+        },
+        "journal_evidence_auditability": {
+          "score": 0.5,
+          "weight": 0.15,
+          "weighted": 0.075,
+          "description": "Whether journal, evidence-read, and changed-artifact traces are inspectable."
+        },
+        "recovery_feedback_usage": {
+          "score": 0.25,
+          "weight": 0.1,
+          "weighted": 0.025,
+          "description": "Whether checker feedback or supervisor signals were used to recover."
+        },
+        "reproducibility_trace_quality": {
+          "score": 0.4,
+          "weight": 0.05,
+          "weighted": 0.02,
+          "description": "Whether manifest, turn trace, command trace, and policy trace are complete."
+        }
+      }
+    },
     "failure_reason": "Legacy backend lacks SDK thread/turn/event contract; supervisor could not recover from opaque Codex state."
   }
 ]

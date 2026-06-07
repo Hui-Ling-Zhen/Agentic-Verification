@@ -121,8 +121,8 @@
     "mcp_startup": []
   },
   "duration_sec": 310.0,
-  "started_at": "2026-06-07T06:44:18+00:00",
-  "updated_at": "2026-06-07T06:44:18+00:00",
+  "started_at": "2026-06-07T07:51:30+00:00",
+  "updated_at": "2026-06-07T07:51:30+00:00",
   "codex_thread_id": null,
   "codex_turn_id": null,
   "codex_turn_status": "failed",
@@ -180,5 +180,46 @@
   ],
   "policy_enforcement": "not_available",
   "artifact_quality_score": 0.55,
+  "artifact_quality_breakdown": {
+    "score": 0.55,
+    "rubric": {
+      "stage_completion": {
+        "score": 0.5,
+        "weight": 0.3,
+        "weighted": 0.15,
+        "description": "How many required workflow stages completed."
+      },
+      "checker_result_quality": {
+        "score": 0.65,
+        "weight": 0.2,
+        "weighted": 0.13,
+        "description": "Whether checkers passed or produced actionable feedback."
+      },
+      "required_artifact_completeness": {
+        "score": 0.75,
+        "weight": 0.2,
+        "weighted": 0.15,
+        "description": "Whether required plan/basic-info/functions/checks/tests artifacts exist."
+      },
+      "journal_evidence_auditability": {
+        "score": 0.5,
+        "weight": 0.15,
+        "weighted": 0.075,
+        "description": "Whether journal, evidence-read, and changed-artifact traces are inspectable."
+      },
+      "recovery_feedback_usage": {
+        "score": 0.25,
+        "weight": 0.1,
+        "weighted": 0.025,
+        "description": "Whether checker feedback or supervisor signals were used to recover."
+      },
+      "reproducibility_trace_quality": {
+        "score": 0.4,
+        "weight": 0.05,
+        "weighted": 0.02,
+        "description": "Whether manifest, turn trace, command trace, and policy trace are complete."
+      }
+    }
+  },
   "artifact_quality_notes": "Some artifacts exist, but turn trace and recovery context are missing."
 }

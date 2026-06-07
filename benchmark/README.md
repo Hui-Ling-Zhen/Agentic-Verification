@@ -159,6 +159,7 @@ The important columns are:
 - `duration_sec`
 - `codex_failure_reason`
 - `artifact_quality_score`
+- `artifact_quality_breakdown`
 - `codex_supervisor_signal_count`
 
-Synthetic results are not claims about model performance. They are a reproducible scaffold for the real Adder/Mux ablation runs.
+Demo results are a reproducible scaffold for the real Adder/Mux ablation runs.
