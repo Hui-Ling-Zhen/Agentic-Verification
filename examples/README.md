@@ -25,7 +25,8 @@
 5. [Sbuffer flagship](03-microarch/Sbuffer/README.md) — `make example-flagship`
 6. [IntegerDivider](04-algorithm/integer-divider/README.md) — `make example-algorithm`
 7. [Formal arbiter](05-formal/arbiter/README.md) — `make example-formal`
-8. [GenSpec / Gencov](06-planning/README.md) — 高级规划（可选）
+8. [FIFO coverage closure](07-coverage/fifo_coverage/README.md) — `make example-coverage`
+9. [GenSpec / Gencov](06-planning/README.md) — 高级规划（可选）
 
 如果想比较 supervised Codex / raw Codex / legacy Codex 的双层 runtime 优势，请看 [`benchmark/ablation/README.md`](../benchmark/ablation/README.md)。这不是新的 DUT case，而是基于现有 case 的 benchmark/ablation 实验。
 
@@ -45,8 +46,9 @@
 | 8 | Formal Adder | [05-formal/Adder/README.md](05-formal/Adder/README.md) | `make formal_mcp_Adder` | ⭐⭐⭐ |
 | 9 | Formal arbiter | [05-formal/arbiter/README.md](05-formal/arbiter/README.md) | `make example-formal` | ⭐⭐⭐ |
 | 10 | Formal traffic | [05-formal/traffic/README.md](05-formal/traffic/README.md) | `make formal_mcp_traffic` | ⭐⭐⭐⭐ |
-| 11 | GenSpec DCache | [06-planning/genspec/README.md](06-planning/genspec/README.md) | 见 case README | ⭐⭐⭐⭐ |
-| 12 | Gencov IFU | [06-planning/gencov/README.md](06-planning/gencov/README.md) | 见 case README | ⭐⭐⭐⭐ |
+| 11 | FIFO coverage closure | [07-coverage/fifo_coverage/README.md](07-coverage/fifo_coverage/README.md) | `make example-coverage` / `make -C examples/07-coverage mutation-demo` | ⭐⭐⭐ |
+| 12 | GenSpec DCache | [06-planning/genspec/README.md](06-planning/genspec/README.md) | 见 case README | ⭐⭐⭐⭐ |
+| 13 | Gencov IFU | [06-planning/gencov/README.md](06-planning/gencov/README.md) | 见 case README | ⭐⭐⭐⭐ |
 
 ---
 
@@ -60,6 +62,7 @@
 | [04-algorithm](04-algorithm/README.md) | 算法 RTL | 同上 |
 | [05-formal](05-formal/README.md) | 形式化 | 同上 |
 | [06-planning](06-planning/README.md) | Spec / 覆盖率规划 | 同上 |
+| [07-coverage](07-coverage/README.md) | Coverage closure / directed tests / mutation demo | 同上 |
 
 各故事线共享资源（不单独写 README）：
 

@@ -1,0 +1,128 @@
+template_overwrite:
+  DOC_GEN_LANG: "中文"
+  RTL_PATH: "{DUT}_RTL"
+
+hooks:
+  continue: >
+    你还没有完成 coverage closure 任务，请继续。优先阅读 coverage report，
+    将缺失 bins 转换为 directed tests，并通过 Complete 工具检查当前阶段。
+  cagent_init: >
+    请通过工具 RoleInfo 获取你的角色信息，然后读取 {DUT}/README.md 和
+    {DUT}/coverage_report_initial.md，开始 coverage closure 任务。
+
+mission:
+  name: "{DUT} coverage closure demo"
+  prompt:
+    system: |
+      你是一位资深芯片验证工程师，当前任务不是从零写随机测试，而是根据已有 coverage report 做 coverage closure。
+
+      传统流程中，工程师需要人工查看 coverage report、判断缺失场景、手写 directed tests、再反复跑回归。
+      在本 workflow 中，VeriAgent 负责把 coverage gap 固化为阶段与 checker，Codex 负责分析 gap、生成 directed tests，并写出可审计 closure report。
+
+      工作要求：
+      - 必须读取 {DUT}/coverage_report_initial.md。
+      - 必须保留并引用 uncovered bin 的准确标签。
+      - directed tests 必须针对缺失场景，不要只写普通 push/pop smoke test。
+      - 每个阶段完成前必须调用 SetCurrentStageJournal，字段为 plan、evidence_read、changes_made、checker_result、next_risk。
+      - 使用 Complete 推进阶段；如果 checker 失败，根据反馈修正产物。
+  tips:
+    allways:
+      - "先读取 coverage report，再写 gap analysis。"
+      - "所有 uncovered bins 都必须映射到 directed tests。"
+      - "closure report 必须解释每个 gap 如何被覆盖。"
+
+mcp_server:
+  init_prompt: >
+    请读取 {DUT}/README.md 和 {DUT}/coverage_report_initial.md，开始 coverage closure 任务。
+
+stage:
+  - name: coverage_gap_analysis
+    desc: "Coverage gap 分析"
+    task:
+      - "读取 {DUT}/README.md，理解 FIFO DUT 的接口和行为。"
+      - "读取 {DUT}/coverage_report_initial.md，提取所有 uncovered bins。"
+      - "分析每个 gap 对应的 FIFO 行为、边界条件和 directed test 意图。"
+      - "写入 {OUT}/{DUT}_coverage_gap_analysis.md。"
+      - "文档必须包含 COV-FULL-PUSH-BLOCK、COV-EMPTY-POP-BLOCK、COV-WRAPAROUND、COV-SIMULTANEOUS-PUSH-POP。"
+    reference_files:
+      - "{DUT}/README.md"
+      - "{DUT}/coverage_report_initial.md"
+    output_files:
+      - "{OUT}/{DUT}_coverage_gap_analysis.md"
+    checker:
+      - name: gap_analysis_markdown
+        clss: "UnityChipCheckerMarkdownFileFormat"
+        args:
+          markdown_file_list: "{OUT}/{DUT}_coverage_gap_analysis.md"
+          no_line_break: true
+
+  - name: directed_test_plan
+    desc: "Directed test plan 生成"
+    task:
+      - "基于 {OUT}/{DUT}_coverage_gap_analysis.md 写 directed test plan。"
+      - "为每个 uncovered bin 给出测试步骤、期望结果、需要观察的信号。"
+      - "写入 {OUT}/{DUT}_directed_test_plan.md。"
+      - "不要把 gap 简单标记为 ignored；必须说明如何覆盖。"
+    reference_files:
+      - "{DUT}/coverage_report_initial.md"
+      - "{OUT}/{DUT}_coverage_gap_analysis.md"
+    output_files:
+      - "{OUT}/{DUT}_directed_test_plan.md"
+    checker:
+      - name: directed_plan_markdown
+        clss: "UnityChipCheckerMarkdownFileFormat"
+        args:
+          markdown_file_list: "{OUT}/{DUT}_directed_test_plan.md"
+          no_line_break: true
+
+  - name: directed_test_generation
+    desc: "Directed tests 实现"
+    task:
+      - "创建或更新 {OUT}/tests/test_fifo_coverage_directed.py。"
+      - "测试文件中必须显式覆盖四个 uncovered bins，并在注释或测试名中保留对应 COV-* 标签。"
+      - "至少包含 full 后继续 push、empty 后继续 pop、pointer wrap-around、非空非满同时 push/pop 四类场景。"
+      - "如当前环境无法完整运行仿真，也必须写出可审阅、可迁移的 pytest directed tests，并说明运行假设。"
+    reference_files:
+      - "{OUT}/{DUT}_directed_test_plan.md"
+      - "{DUT}/coverage_report_initial.md"
+      - "{DUT}/__init__.py"
+    output_files:
+      - "{OUT}/tests/test_fifo_coverage_directed.py"
+    checker:
+      - name: directed_test_exists
+        clss: "OrginFileMustExistChecker"
+        args:
+          files:
+            - "{OUT}/tests/test_fifo_coverage_directed.py"
+
+  - name: closure_report
+    desc: "Coverage closure report"
+    task:
+      - "运行或审阅 directed tests，整理 coverage closure 结果。"
+      - "写入 {OUT}/{DUT}_coverage_closure_report.md。"
+      - "closure report 必须逐项列出四个 uncovered bins、对应 test、预期效果、剩余风险。"
+      - "运行 {DUT}/check_coverage_closure.py --out {OUT}，根据反馈修正产物。"
+    reference_files:
+      - "{DUT}/coverage_report_initial.md"
+      - "{OUT}/{DUT}_coverage_gap_analysis.md"
+      - "{OUT}/{DUT}_directed_test_plan.md"
+      - "{OUT}/tests/test_fifo_coverage_directed.py"
+      - "{DUT}/check_coverage_closure.py"
+    output_files:
+      - "{OUT}/{DUT}_coverage_closure_report.md"
+    checker:
+      - name: coverage_closure_markdown
+        clss: "UnityChipCheckerMarkdownFileFormat"
+        args:
+          markdown_file_list: "{OUT}/{DUT}_coverage_closure_report.md"
+          no_line_break: true
+      - name: coverage_closure_mapping
+        clss: "BashScriptChecker"
+        args:
+          cmd: "python"
+          arguments:
+            - "{DUT}/check_coverage_closure.py"
+            - "--out"
+            - "{OUT}"
+          pass_pattern:
+            "PASS: FIFO coverage closure artifacts": "All uncovered bins mapped to directed tests."

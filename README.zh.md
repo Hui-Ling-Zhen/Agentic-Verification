@@ -90,6 +90,21 @@ VeriAgent 会把 Codex event 提升成 supervisor signal：
 make ablation-benchmark
 ```
 
+### Demo 对比结果：coverage gap directed tests
+
+FIFO coverage-closure demo 展示了：把 coverage gaps 作为 agent 输入后，生成的 directed tests 比普通 smoke baseline 更能覆盖 corner case：
+
+| Test set | Covered bins | Initial gaps hit | Injected mutations detected |
+|----------|--------------|------------------|-----------------------------|
+| `smoke_baseline` | `8/12` | `0/4` | `0/4` |
+| `gap_directed` | `12/12` | `4/4` | `4/4` |
+
+这不表示 Agent 替代资深验证工程师，而是说明 supervised agent workflow 可以系统地把明确 coverage gap 转成 directed tests 和可审计 closure evidence。完整报告见 [`examples/07-coverage/fifo_coverage/mutation_report.md`](/examples/07-coverage/fifo_coverage/mutation_report.md)，也可以重新生成：
+
+```bash
+make -C examples/07-coverage mutation-demo
+```
+
 ---
 
 ## 环境要求
@@ -212,6 +227,7 @@ make benchmark   # → benchmark/summary.csv、benchmark/runs.json
 | IntegerDivider / ALU754 | [`integer-divider`](/examples/04-algorithm/integer-divider/README.md) · [`ieee754-alu`](/examples/04-algorithm/ieee754-alu/README.md) |
 | Formal | [`Adder`](/examples/05-formal/Adder/README.md) · [`arbiter`](/examples/05-formal/arbiter/README.md) · [`traffic`](/examples/05-formal/traffic/README.md) |
 | GenSpec / Gencov | [`genspec`](/examples/06-planning/genspec/README.md) · [`gencov`](/examples/06-planning/gencov/README.md) |
+| Coverage Closure | [`FIFO`](/examples/07-coverage/fifo_coverage/README.md) · mutation demo：smoke `0/4` vs directed `4/4` injected bugs |
 
 ---
 
@@ -222,6 +238,7 @@ make benchmark   # → benchmark/summary.csv、benchmark/runs.json
 | `make example-baseline` | Adder UT |
 | `make example-bug` | Mux bug |
 | `make example-formal` | Formal arbiter |
+| `make example-coverage` | FIFO coverage closure |
 | `make mcp_<DUT>` | 任意 UT DUT（自动 workflow） |
 | `make formal_mcp_<DUT>` | Formal（含 `--use-skill`） |
 | `make benchmark` | 汇总 run_manifest.json |

@@ -15,6 +15,7 @@ DUT_SRC_Sbuffer := examples/03-microarch/Sbuffer
 DUT_SRC_IntegerDivider := examples/04-algorithm/integer-divider
 DUT_SRC_ALU754 := examples/04-algorithm/ieee754-alu
 DUT_SRC_uart_16550 := examples/02-peripheral-ip/uart_16550
+DUT_SRC_FIFO := examples/07-coverage/fifo_coverage
 
 # Per-DUT workflow configs (externalized under examples/*/workflow/)
 WORKFLOW_CFG_Adder := examples/01-baseline/workflow/default.yaml
@@ -23,6 +24,7 @@ WORKFLOW_CFG_Sbuffer := examples/03-microarch/workflow/default.yaml
 WORKFLOW_CFG_IntegerDivider := examples/04-algorithm/workflow/default.yaml
 WORKFLOW_CFG_ALU754 := examples/04-algorithm/workflow/default.yaml
 WORKFLOW_CFG_uart_16550 := examples/02-peripheral-ip/workflow/default.yaml
+WORKFLOW_CFG_FIFO := examples/07-coverage/workflow/coverage_closure.yaml
 
 define dut_src_dir
 $(if $(DUT_SRC_$1),$(DUT_SRC_$1),$(SRC)/$1)
@@ -255,7 +257,7 @@ swarm_master: swarm_init
 -include docs/Makefile
 
 # ---------- Semantic example targets (see examples/README.md) ----------
-.PHONY: example-baseline example-bug example-increment example-formal example-flagship example-peripheral example-algorithm
+.PHONY: example-baseline example-bug example-increment example-formal example-flagship example-peripheral example-algorithm example-coverage
 
 example-baseline:
 	$(MAKE) -C examples/01-baseline quick $(ARGS)
@@ -277,6 +279,9 @@ example-peripheral:
 
 example-algorithm:
 	$(MAKE) mcp_IntegerDivider $(ARGS)
+
+example-coverage:
+	$(MAKE) -C examples/07-coverage closure $(ARGS)
 
 # ---------- Benchmark: aggregate .veriagent/run_manifest.json ----------
 .PHONY: benchmark benchmark-clean ablation-simulate ablation-benchmark ablation-clean

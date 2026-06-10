@@ -1,0 +1,127 @@
+{
+  "dut": "FIFO",
+  "demo": "coverage_closure_mutation",
+  "all_bins": [
+    "COV-RESET-EMPTY",
+    "COV-SINGLE-PUSH",
+    "COV-SINGLE-POP",
+    "COV-BASIC-DATA-ORDER",
+    "COV-COUNT-UP",
+    "COV-COUNT-DOWN",
+    "COV-FULL-FLAG",
+    "COV-EMPTY-FLAG",
+    "COV-FULL-PUSH-BLOCK",
+    "COV-EMPTY-POP-BLOCK",
+    "COV-WRAPAROUND",
+    "COV-SIMULTANEOUS-PUSH-POP"
+  ],
+  "initial_covered_bins": [
+    "COV-BASIC-DATA-ORDER",
+    "COV-COUNT-DOWN",
+    "COV-COUNT-UP",
+    "COV-EMPTY-FLAG",
+    "COV-FULL-FLAG",
+    "COV-RESET-EMPTY",
+    "COV-SINGLE-POP",
+    "COV-SINGLE-PUSH"
+  ],
+  "initial_uncovered_bins": [
+    "COV-EMPTY-POP-BLOCK",
+    "COV-FULL-PUSH-BLOCK",
+    "COV-SIMULTANEOUS-PUSH-POP",
+    "COV-WRAPAROUND"
+  ],
+  "mutations": {
+    "MUT-FULL-PUSH-OVERWRITE": "Allows push while full, corrupting stored FIFO order.",
+    "MUT-EMPTY-POP-UNDERFLOW": "Allows pop while empty, corrupting count/data state.",
+    "MUT-NO-POINTER-WRAP": "Prevents pointer wrap-around after the last entry.",
+    "MUT-SIM-PUSH-POP-COUNT": "Updates count incorrectly during simultaneous push/pop."
+  },
+  "test_sets": {
+    "smoke_baseline": {
+      "passes_golden": true,
+      "golden_failure": null,
+      "covered_bins": [
+        "COV-BASIC-DATA-ORDER",
+        "COV-COUNT-DOWN",
+        "COV-COUNT-UP",
+        "COV-EMPTY-FLAG",
+        "COV-FULL-FLAG",
+        "COV-RESET-EMPTY",
+        "COV-SINGLE-POP",
+        "COV-SINGLE-PUSH"
+      ],
+      "covered_bin_count": 8,
+      "total_bin_count": 12,
+      "initially_uncovered_bins_hit": [],
+      "initially_uncovered_bin_count": 0,
+      "mutations_detected": 0,
+      "mutation_total": 4,
+      "mutation_results": {
+        "MUT-FULL-PUSH-OVERWRITE": {
+          "detected": false,
+          "failure": null
+        },
+        "MUT-EMPTY-POP-UNDERFLOW": {
+          "detected": false,
+          "failure": null
+        },
+        "MUT-NO-POINTER-WRAP": {
+          "detected": false,
+          "failure": null
+        },
+        "MUT-SIM-PUSH-POP-COUNT": {
+          "detected": false,
+          "failure": null
+        }
+      }
+    },
+    "gap_directed": {
+      "passes_golden": true,
+      "golden_failure": null,
+      "covered_bins": [
+        "COV-BASIC-DATA-ORDER",
+        "COV-COUNT-DOWN",
+        "COV-COUNT-UP",
+        "COV-EMPTY-FLAG",
+        "COV-EMPTY-POP-BLOCK",
+        "COV-FULL-FLAG",
+        "COV-FULL-PUSH-BLOCK",
+        "COV-RESET-EMPTY",
+        "COV-SIMULTANEOUS-PUSH-POP",
+        "COV-SINGLE-POP",
+        "COV-SINGLE-PUSH",
+        "COV-WRAPAROUND"
+      ],
+      "covered_bin_count": 12,
+      "total_bin_count": 12,
+      "initially_uncovered_bins_hit": [
+        "COV-EMPTY-POP-BLOCK",
+        "COV-FULL-PUSH-BLOCK",
+        "COV-SIMULTANEOUS-PUSH-POP",
+        "COV-WRAPAROUND"
+      ],
+      "initially_uncovered_bin_count": 4,
+      "mutations_detected": 4,
+      "mutation_total": 4,
+      "mutation_results": {
+        "MUT-FULL-PUSH-OVERWRITE": {
+          "detected": true,
+          "failure": "full push corrupted stored data: [99, 2, 3, 4]"
+        },
+        "MUT-EMPTY-POP-UNDERFLOW": {
+          "detected": true,
+          "failure": "empty pop must keep FIFO empty with stable count"
+        },
+        "MUT-NO-POINTER-WRAP": {
+          "detected": true,
+          "failure": "wrap-around order mismatch: [3, 6, 6, 6]"
+        },
+        "MUT-SIM-PUSH-POP-COUNT": {
+          "detected": true,
+          "failure": "simultaneous push/pop should keep count stable"
+        }
+      }
+    }
+  }
+}

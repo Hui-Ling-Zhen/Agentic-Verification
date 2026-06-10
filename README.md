@@ -92,6 +92,21 @@ The key result is not raw speed. The supervised mode makes progress **auditable,
 make ablation-benchmark
 ```
 
+### Demo result: coverage-gap-directed tests
+
+The FIFO coverage-closure demo shows why using coverage gaps as agent input can produce stronger directed tests than a generic smoke baseline:
+
+| Test set | Covered bins | Initial gaps hit | Injected mutations detected |
+|----------|--------------|------------------|-----------------------------|
+| `smoke_baseline` | `8/12` | `0/4` | `0/4` |
+| `gap_directed` | `12/12` | `4/4` | `4/4` |
+
+This does not claim the agent replaces an expert verification engineer. It shows that a supervised agent workflow can systematically translate explicit coverage gaps into directed tests and auditable closure evidence. See [examples/07-coverage/fifo_coverage/mutation_report.md](examples/07-coverage/fifo_coverage/mutation_report.md) or regenerate it with:
+
+```bash
+make -C examples/07-coverage mutation-demo
+```
+
 ---
 
 ## Requirements
@@ -187,6 +202,7 @@ Details: [benchmark/README.md](benchmark/README.md).
 |---------|------|
 | `make example-baseline` | Adder UT |
 | `make example-formal` | Formal arbiter |
+| `make example-coverage` | FIFO coverage closure |
 | `make mcp_<DUT>` | UT with auto workflow + `--config` |
 | `make formal_mcp_<DUT>` | Formal + `--use-skill` |
 | `make benchmark` | Aggregate run manifests |
@@ -205,6 +221,7 @@ Details: [benchmark/README.md](benchmark/README.md).
 | IntegerDivider / ALU754 | [integer-divider](examples/04-algorithm/integer-divider/README.md) · [ieee754-alu](examples/04-algorithm/ieee754-alu/README.md) |
 | Formal | [Adder](examples/05-formal/Adder/README.md) · [arbiter](examples/05-formal/arbiter/README.md) · [traffic](examples/05-formal/traffic/README.md) |
 | GenSpec / Gencov | [genspec](examples/06-planning/genspec/README.md) · [gencov](examples/06-planning/gencov/README.md) |
+| Coverage Closure | [FIFO](examples/07-coverage/fifo_coverage/README.md) · mutation demo: smoke `0/4` vs directed `4/4` injected bugs |
 
 Full listing: [examples/README.md](examples/README.md).
 

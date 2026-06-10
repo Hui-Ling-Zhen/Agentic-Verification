@@ -66,6 +66,21 @@ The supervised mode makes progress **auditable, recoverable, and measurable**. S
 make ablation-benchmark
 ```
 
+### Demo result: coverage-gap-directed tests
+
+The FIFO coverage-closure demo shows why using coverage gaps as agent input can produce stronger directed tests than a generic smoke baseline:
+
+| Test set | Covered bins | Initial gaps hit | Injected mutations detected |
+|----------|--------------|------------------|-----------------------------|
+| `smoke_baseline` | `8/12` | `0/4` | `0/4` |
+| `gap_directed` | `12/12` | `4/4` | `4/4` |
+
+This does not claim the agent replaces an expert verification engineer. It shows that a supervised agent workflow can systematically translate explicit coverage gaps into directed tests and auditable closure evidence. See [`examples/07-coverage/fifo_coverage/mutation_report.md`](/examples/07-coverage/fifo_coverage/mutation_report.md) or regenerate it with:
+
+```bash
+make -C examples/07-coverage mutation-demo
+```
+
 ---
 
 ## Requirements
@@ -169,6 +184,7 @@ Case index: same table as [README.zh.md](/README.zh.md#case-readme-索引).
 |---------|------|
 | `make example-baseline` | Adder UT |
 | `make example-formal` | Formal arbiter |
+| `make example-coverage` | FIFO coverage closure |
 | `make mcp_<DUT>` | UT with auto workflow |
 | `make formal_mcp_<DUT>` | Formal + `--use-skill` |
 | `make benchmark` | Aggregate run manifests |
